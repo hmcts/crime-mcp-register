@@ -4,11 +4,11 @@
 > proxy, cached GitHub client, server factory. Bring your tools and
 > your `instructions` field; this package handles everything else.
 
-[![npm version](https://img.shields.io/badge/npm-0.1.0--beta.0-blue.svg)](https://www.npmjs.com/package/@hmcts/crime-mcp-register)
+[![@hmcts/crime-mcp-register in hmcts-lib](https://img.shields.io/badge/npm-0.1.0-blue.svg)](https://dev.azure.com/hmcts/Artifacts/_artifacts/feed/hmcts-lib/Npm/@hmcts%2Fcrime-mcp-register)
 [![Status: beta](https://img.shields.io/badge/status-beta-yellow.svg)](#status)
 
 ## Install
-### NOT ACTIVE YET. FRONTEND PLUGIN USES TAR FILE.
+
 ```bash
 npm install @hmcts/crime-mcp-register
 ```
