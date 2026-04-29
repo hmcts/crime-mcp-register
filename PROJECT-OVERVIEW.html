@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>PROJECT-OVERVIEW</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">PROJECT-OVERVIEW</h1>
+</header>
+<h1 id="project-overview-hmctscrime-mcp-register">Project Overview –
+<code>@hmcts/crime-mcp-register</code></h1>
+<p>This document is the <em>why</em>. What problem this package solves,
+what it deliberately does and does not do, and how it fits into the
+broader HMCTS Crime MCP ecosystem. For the <em>how</em> (every type and
+method documented), read <a
+href="./ARCHITECTURE.md">ARCHITECTURE.md</a>. For a quick start, read <a
+href="./README.md">README.md</a>.</p>
+<h2 id="what-this-is-in-one-paragraph">What this is, in one
+paragraph</h2>
+<p><code>@hmcts/crime-mcp-register</code> is a small TypeScript library
+that provides the runtime plumbing every HMCTS Crime MCP server needs:
+SSE transport, an OAuth 2.1 proxy in front of GitHub, a cached GitHub
+client, a per-developer request context, and a server factory that wires
+it all together. A consuming plugin imports <code>createServer</code>
+from this package, declares its tools and an <code>instructions</code>
+field for the model, and gets a production-ready MCP server with one
+function call.</p>
+<h2 id="what-problem-this-solves">What problem this solves</h2>
+<p>Every MCP server we build for HMCTS Crime fronts the same
+infrastructure:</p>
+<ul>
+<li><strong>Knowledge that lives in GitHub repositories.</strong> The
+<code>cpp-ui-pdk2</code> repo, the various plugin repos, future
+framework repos – all are read-mostly sources for tools that surface
+them to Claude Code.</li>
+<li><strong>Per-developer GitHub authentication in production.</strong>
+The hosted service must not run with a shared service-account token;
+per-developer identity is required for audit and revocation. Every
+developer authenticates with their own GitHub account, and the server
+holds their token only for the lifetime of their session.</li>
+<li><strong>A version-check loop from local Claude Code installs back to
+the remote knowledge.</strong> Each plugin needs a way to tell Claude
+Code that rule files or agent definitions have been updated upstream so
+the developer can refresh.</li>
+<li><strong>A cache that respects “the source moved” without thrashing
+GitHub.</strong> Knowledge changes weekly at most; reads can be many per
+second during active development.</li>
+</ul>
+<p>Without a shared library, every plugin would reimplement all of this.
+Worse, every plugin would reimplement it slightly differently – the
+OAuth proxy especially has enough subtle state machinery (PKCE
+verification, session GC, refresh-token rotation) that copy-paste would
+produce drift, and drift would produce security bugs.</p>
+<p><code>@hmcts/crime-mcp-register</code> exists so that none of this
+gets reimplemented per plugin. The plumbing is in one place, reviewed in
+one place, tested and patched in one place. A plugin is then
+<em>only</em> its tools, its <code>instructions</code> field, and the
+GitHub repo it fetches from.</p>
+<h2 id="who-this-is-for">Who this is for</h2>
+<p>Engineers building MCP servers that connect Claude Code to HMCTS
+Crime GitHub repositories. Today that means:</p>
+<ul>
+<li><code>crime-frontend-developer-mcp</code> – the Crime Procedure
+cp-angular developer’s plugin</li>
+<li>Any future Crime framework MCP plugins (cp-react, cp-be, cp-data,
+etc.)</li>
+</ul>
+<p>If you’re building an MCP server <em>outside</em> HMCTS Crime
+infrastructure – fetching from a different code host, using a different
+identity provider, needing different transport semantics – this package
+is probably not for you. It is opinionated about its environment.</p>
+<h2 id="what-you-provide-vs-what-you-get">What you provide vs what you
+get</h2>
+<p>When you build a plugin on top of
+<code>@hmcts/crime-mcp-register</code>, your code focuses on:</p>
+<ul>
+<li><strong>Tool definitions.</strong> Each is a
+<code>defineTool({...})</code> call: name, description, JSON schema,
+async handler. The handler does the actual work (fetch a file, search a
+directory, build a payload, etc.). Your consumer-facing surface is a
+list of these.</li>
+<li><strong>An <code>instructions</code> field.</strong> Plain text that
+becomes part of the model’s system prompt every turn for as long as the
+plugin is connected. This is where you tell Claude how to use your
+tools, what to do at session start, when to ask the developer before
+doing anything destructive. It is the single most leveraged part of a
+consumer plugin.</li>
+<li><strong>Optional prompts.</strong> If your plugin wants slash
+commands (<code>/mcp__&lt;plugin&gt;__&lt;command&gt;</code>), define
+them with <code>definePrompt</code>.</li>
+</ul>
+<p>The library provides everything else:</p>
+<ul>
+<li><strong>Transport selection.</strong> <code>local-stdio</code> for
+legacy or subprocess use, <code>local-sse</code> for local development
+with the production wire format, <code>remote-sse</code> for hosted
+deployments. Selected by <code>CRIME_MCP_MODE</code> env var or explicit
+config.</li>
+<li><strong>The HTTP server when SSE.</strong> Healthcheck, version
+endpoint, cache invalidation, and the MCP transport endpoints, all
+routed.</li>
+<li><strong>OAuth 2.1 with PKCE.</strong> Six endpoints, full RFC 7591
+dynamic registration, RFC 8414 metadata, refresh-token rotation,
+in-memory session store with periodic GC. Per-developer GitHub identity
+threaded through to the GitHub client via async-context.</li>
+<li><strong>A cached GitHub client.</strong> Two-tier cache (tree +
+file), 24-hour TTL, batched concurrency for multi-file reads, keep-alive
+HTTPS agent shared across all Octokit instances. Per-session token
+resolution: in authenticated SSE sessions, the developer’s token is
+used; in stdio or unauthenticated SSE, falls back to
+<code>gh auth token</code>.</li>
+<li><strong>Session lifecycle management.</strong>
+<code>runWithSession</code> / <code>getCurrentSession</code> for moving
+the session through async code without threading it through every
+call.</li>
+<li><strong>Bundle delivery primitives.</strong> A consumer-agnostic
+mechanism for shipping files to a developer’s machine without putting
+them through the MCP tool-result channel: <code>buildTarGz</code>
+produces a UTF-8 no-BOM tarball, <code>storePayload</code> stashes it in
+a single-use TTL-bounded store, and the SSE server’s
+<code>GET /payload/:id</code> route serves it once before deleting the
+entry. Consumer plugins that need to seed developer workspaces (PDK
+rules, agent files, hook scripts) get correct byte-perfect installation
+via <code>tar -xf</code> on the developer’s side, with zero file content
+travelling through Claude’s response tokens. Same primitive available to
+any future plugin without changes.</li>
+</ul>
+<h2 id="what-this-deliberately-does-not-do">What this deliberately does
+NOT do</h2>
+<ul>
+<li><strong>It does not define your tools.</strong> A plugin that
+imports this package and registers zero tools is technically valid; it
+just doesn’t expose anything. Tool surface is the consumer’s
+responsibility.</li>
+<li><strong>It does not fetch from anywhere except where you tell
+it.</strong> There are no hard-coded repository names, no opinionated
+paths, no “framework knowledge” baked in. You pass a
+<code>RepoConfig</code> to every GitHub call.</li>
+<li><strong>It does not write files to a developer’s machine.</strong>
+That belongs in the consumer plugin.
+<code>crime-frontend-developer-mcp</code>’s <code>setup_workspace</code>
+tool, for example, writes 27 files to <code>~/.claude/...</code> and
+<code>~/crime-frontend-claude/...</code> – but the writing logic is in
+<em>that</em> plugin, not in the register. The register provides a
+server; what the tool handlers do with the inputs is entirely the
+consumer’s problem.</li>
+<li><strong>It does not own the developer-machine SessionStart
+hook.</strong> That is also a consumer-plugin concern. The register
+provides a <code>/version</code> endpoint that <em>can</em> be polled by
+such a hook, but defining and installing the hook is up to the
+consumer.</li>
+<li><strong>It does not provide its own authorisation logic.</strong>
+OAuth verifies <em>who</em> the developer is. Whether <em>that</em>
+developer is allowed to call <em>that</em> tool with <em>those</em>
+arguments is a question the consumer plugin must answer if it
+cares.</li>
+<li><strong>It does not support transports other than stdio and
+SSE.</strong> No HTTP long-poll, no WebSocket, no IPC pipes. The MCP SDK
+supports more, but this register binds two.</li>
+<li><strong>It does not support identity providers other than
+GitHub.</strong> A future minor version could parameterise the upstream
+OAuth client, but as of 0.1.0 the OAuth proxy is GitHub-specific.</li>
+</ul>
+<h2 id="operational-requirements-per-mode">Operational requirements per
+mode</h2>
+<p>The library supports three transport modes and two GitHub-auth paths
+(OAuth session or <code>gh</code> CLI fallback). Different combinations
+have different operational prerequisites. Use this table to figure out
+what you need installed and configured for your scenario.</p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Scenario</th>
+<th>Transport mode</th>
+<th>OAuth required</th>
+<th><code>gh</code> CLI required</th>
+<th>Use case</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Subprocess MCP server</td>
+<td><code>local-stdio</code></td>
+<td>No</td>
+<td>Yes (on developer machine)</td>
+<td>Legacy or scripted use</td>
+</tr>
+<tr class="even">
+<td>Local development</td>
+<td><code>local-sse</code></td>
+<td>No</td>
+<td>Yes (on developer machine)</td>
+<td>Mirroring production wire format locally</td>
+</tr>
+<tr class="odd">
+<td>Hosted, trust-LAN</td>
+<td><code>remote-sse</code> (no <code>auth</code>)</td>
+<td>No</td>
+<td>Yes (on the server)</td>
+<td>Internal-only deployments</td>
+</tr>
+<tr class="even">
+<td>Hosted, production</td>
+<td><code>remote-sse</code> (with <code>auth</code> +
+<code>enforceAuth: true</code>)</td>
+<td>Yes</td>
+<td>No</td>
+<td>Per-developer identity, audit, revocation</td>
+</tr>
+<tr class="odd">
+<td>Build-time scripts</td>
+<td>(no server)</td>
+<td>No</td>
+<td>Yes (wherever the script runs)</td>
+<td><code>generate:pdk</code> and similar</td>
+</tr>
+</tbody>
+</table>
+<h3 id="gh-cli-as-the-fallback-path"><code>gh</code> CLI as the fallback
+path</h3>
+<p>When no OAuth session is present in the current async context, the
+GitHub client falls back to running <code>gh auth token</code> via
+<code>execSync</code>. This applies in two situations:</p>
+<ul>
+<li><strong>Runtime, no OAuth.</strong> Local-stdio mode and local-sse
+without <code>enforceAuth</code>. Every request runs without a session,
+so every GitHub call uses <code>gh</code>.</li>
+<li><strong>Build-time scripts.</strong> The <code>generate:pdk</code>
+script in <code>crime-frontend-developer-mcp</code> (and any similar
+consumer scripts) call <code>fetchFile</code> directly outside an HTTP
+request lifecycle. There is no session to find, so the fallback path is
+taken.</li>
+</ul>
+<p>In both situations the operator running the process is responsible
+for having <code>gh</code> installed and authenticated. The library does
+not run <code>gh auth login</code> for you – it only reads the token via
+<code>gh auth token</code>. If <code>gh</code> is not authenticated,
+<code>getGitHubToken()</code> throws a banner pointing the operator at
+<code>gh auth login</code>.</p>
+<h3 id="gh-cli-vs-personal-access-tokens"><code>gh</code> CLI vs
+personal access tokens</h3>
+<p><code>gh auth login</code> and a manually-generated personal access
+token (PAT) are different mechanisms:</p>
+<ul>
+<li>A <strong>PAT</strong> is generated by hand in the GitHub web UI
+under <em>Settings -&gt; Developer settings -&gt; Personal access
+tokens</em>. The user picks scopes, copies the token, and pastes it into
+config files or environment variables. The token is long-lived (often 90
+days, sometimes no expiry) and tied to the user’s identity
+directly.</li>
+<li><code>gh auth login</code> runs an OAuth Device Authorization Grant
+against the <strong>GitHub CLI OAuth App</strong> – GitHub’s own
+first-party application. The token issued is an OAuth access token,
+scoped by the OAuth App’s registration, stored in the OS keychain,
+refreshed silently as needed. The user does not see or copy it.</li>
+</ul>
+<p>Some organisations forbid manually-generated PATs but permit
+OAuth-issued tokens via <code>gh auth login</code>. Some forbid both.
+<strong>Verify with your security team which applies to your
+environment</strong> before relying on either as the runtime auth path.
+The library is agnostic – it shells out to <code>gh auth token</code>
+and trusts whatever token comes back.</p>
+<h3 id="ci-environments">CI environments</h3>
+<p><code>gh</code> honours the <code>GH_TOKEN</code> environment
+variable. If <code>GH_TOKEN</code> is set, <code>gh auth token</code>
+returns its value without any interactive flow. Two common CI
+patterns:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Pattern 1: pre-authenticate gh with a token from your secret store</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">echo</span> <span class="st">&quot;</span><span class="va">$GITHUB_PAT</span><span class="st">&quot;</span> <span class="kw">|</span> <span class="ex">gh</span> auth login <span class="at">--with-token</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Pattern 2: just set the env var, no gh auth login needed</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">GH_TOKEN</span><span class="op">=</span><span class="st">&quot;</span><span class="va">$GITHUB_PAT</span><span class="st">&quot;</span></span></code></pre></div>
+<p>In either case, the source of <code>GITHUB_PAT</code> (or whatever
+your secret is called) is the operational decision: a service account’s
+PAT, a GitHub App’s installation token, an OIDC-exchanged short-lived
+token, etc. Choose what your environment requires.</p>
+<h3 id="when-gh-should-not-be-used">When <code>gh</code> should NOT be
+used</h3>
+<p>The intended architecture: <code>gh</code> is for personal-machine
+use (developers working locally) and operator-machine use (build
+scripts, CI). It is <strong>not</strong> the auth mechanism for a hosted
+runtime serving real users.</p>
+<p>A hosted production deployment should configure OAuth and run with
+<code>enforceAuth: true</code>. Every developer connecting to the server
+gets their own session, with their own GitHub identity, audited as them.
+There is no shared service-account token in the request path; nothing
+falls back to <code>gh</code>.</p>
+<p>If you find yourself wanting a service-account token in a runtime
+path (“just give the server a PAT and let it act as ‘the system’”),
+pause – that is a sign the deployment isn’t using OAuth as intended. The
+whole point of the OAuth proxy is to avoid that pattern.</p>
+<h2 id="the-mental-model">The mental model</h2>
+<p>Think of <code>crime-mcp-register</code> as the runtime; think of a
+consumer plugin as the content. The runtime is generic; the content is
+specific. The runtime knows nothing about cp-angular or the PDK; the
+content has no opinions about how SSE sessions are bound or how OAuth
+state is stashed.</p>
+<p>That separation is what makes it safe to evolve them independently: a
+plugin can ship every week with new rules, agents, and tool descriptions
+without touching anything in the register. The register can ship a
+quarterly update with a transport bug fix or a cache-tier optimisation
+without any plugin needing to change.</p>
+<h2
+id="concrete-example-how-crime-frontend-developer-mcp-uses-this">Concrete
+example: how <code>crime-frontend-developer-mcp</code> uses this</h2>
+<p>The consumer plugin’s full integration boils down to:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { createServer<span class="op">,</span> loadOAuthConfigFromEnv<span class="op">,</span> AuthStore } <span class="im">from</span> <span class="st">&#39;@hmcts/crime-mcp-register&#39;</span><span class="op">;</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { allTools } <span class="im">from</span> <span class="st">&#39;./tools&#39;</span><span class="op">;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { instructionsField } <span class="im">from</span> <span class="st">&#39;./instructions&#39;</span><span class="op">;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> oauthConfig <span class="op">=</span> <span class="fu">loadOAuthConfigFromEnv</span>()<span class="op">;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> store <span class="op">=</span> oauthConfig <span class="op">?</span> <span class="kw">new</span> <span class="fu">AuthStore</span>() <span class="op">:</span> <span class="dt">undefined</span><span class="op">;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>store<span class="op">?.</span><span class="fu">start</span>()<span class="op">;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> <span class="fu">createServer</span>({</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  name<span class="op">:</span> <span class="st">&#39;crime-frontend-developer-mcp&#39;</span><span class="op">,</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  version<span class="op">:</span> <span class="st">&#39;1.0.0&#39;</span><span class="op">,</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  description<span class="op">:</span> <span class="st">&#39;HMCTS Crime cp-angular developer plugin&#39;</span><span class="op">,</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  instructions<span class="op">:</span> instructionsField<span class="op">,</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  tools<span class="op">:</span> allTools<span class="op">,</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  transport<span class="op">:</span> {</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    versionLoader<span class="op">:</span> <span class="kw">async</span> () <span class="kw">=&gt;</span> <span class="bu">JSON</span><span class="op">.</span><span class="fu">stringify</span>(<span class="cf">await</span> <span class="fu">getKnowledgeVersion</span>())<span class="op">,</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    auth<span class="op">:</span> oauthConfig <span class="op">&amp;&amp;</span> store <span class="op">?</span> { store<span class="op">,</span> config<span class="op">:</span> oauthConfig } <span class="op">:</span> <span class="dt">undefined</span><span class="op">,</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    enforceAuth<span class="op">:</span> <span class="op">!!</span>oauthConfig<span class="op">,</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<p>Everything else – SSE on port 3000 (dev) or 8080 (prod), OAuth flow,
+session store, cache invalidation hook, GitHub client with the
+developer’s token – comes from the register. The plugin is just the
+tools and the text the model reads at every turn.</p>
+<h2 id="what-you-get-for-free">What you get for free</h2>
+<ul>
+<li>Idiomatic mode resolution from <code>CRIME_MCP_MODE</code>
+(<code>stdio</code> | <code>dev</code> | <code>prod</code>) with
+explicit-config override.</li>
+<li>Per-connection MCP <code>Server</code> instances on SSE so the SDK’s
+“one transport per server” rule isn’t violated.</li>
+<li>An auth-aware GitHub client that uses the developer’s token in
+production and <code>gh auth token</code> in dev – without the consumer
+plugin threading anything.</li>
+<li>A cache that warms quickly (one tree fetch covers all paths under
+it), bursts efficiently (keep-alive agent), and respects explicit
+invalidation (when the consumer plugin knows the source repo just
+changed).</li>
+<li>A <code>/version</code> endpoint the consumer can wire to anything
+that returns a JSON string on demand.</li>
+<li>A <code>/health</code> endpoint that reports active session
+count.</li>
+<li>Session bookkeeping (issue, refresh, expire) without the consumer
+touching it.</li>
+</ul>
+<h2 id="what-you-should-know-if-youre-maintaining-this">What you should
+know if you’re maintaining this</h2>
+<ul>
+<li><strong>The OAuth proxy is the most subtle part.</strong> The flow
+has 5 redirects, 3 token exchanges, and 4 different token kinds. Read <a
+href="./ARCHITECTURE.md#6-the-oauth-proxy">ARCHITECTURE.md section 6</a>
+carefully before changing anything in <code>src/auth/</code>.</li>
+<li><strong>The factory pattern is load-bearing.</strong>
+<code>buildServer</code> returns a fresh <code>Server</code> instance
+every time because the MCP SDK’s <code>Server.connect()</code> is
+exclusive – calling it twice on the same Server throws. SSE
+<em>requires</em> per-connection Server instances. If you ever refactor
+<code>create-server.ts</code>, do not regress this.</li>
+<li><strong>Octokit is locked at v20.x.</strong> v21+ is ESM-only.
+Migrating means either dual-build or full ESM, both real work, neither
+in the 0.1.0 scope.</li>
+<li><strong>The cache TTL is 24 hours.</strong> That’s a deliberate
+trade-off – short enough that yesterday’s content gets refreshed, long
+enough that a busy developer doesn’t pay for re-fetches all day. A
+consumer that knows the source has changed (e.g. its own
+<code>update_knowledge</code> tool has run) is expected to call
+<code>invalidateCache(config)</code> to force the refresh.</li>
+<li><strong>The session store is in-memory.</strong> Server restart logs
+everyone out. This is documented behaviour, accepted because OAuth flows
+are cheap and persistence introduces concerns out of scope for the
+current architecture.</li>
+<li><strong><code>AsyncLocalStorage</code> is the load-bearing primitive
+for per-developer identity.</strong> It is what lets a tool handler 5
+calls deep in the call graph reach <code>getCurrentSession()</code> and
+get the right session without it being passed explicitly. If you ever
+find yourself wanting to refactor that out, you will end up threading
+the session through every signature in the codebase. Don’t.</li>
+</ul>
+<h2 id="status">Status</h2>
+<p><code>v0.1.0-beta.0</code>. Pre-1.0 means the surface may shift in
+minor versions. Today’s API is stable enough for the in-tree consumer
+(<code>crime-frontend-developer-mcp</code>); we will commit to semver
+discipline once we have at least one external consumer past initial
+integration.</p>
+<p>Known limitations targeted for the v1.0 roadmap:</p>
+<ul>
+<li>Custom HTTP route registration (currently the consumer cannot add
+endpoints alongside the built-ins)</li>
+<li>Pluggable upstream identity provider</li>
+<li>Persisted session store option for production deployments that need
+to survive process restarts without forcing every developer to
+re-auth</li>
+<li>A way to register middleware in front of tool handlers (logging,
+authorization, rate-limiting)</li>
+</ul>
+<h2 id="roadmap">Roadmap</h2>
+<p>The package is consumed by <code>crime-frontend-developer-mcp</code>
+today. Near-term plans:</p>
+<ol type="1">
+<li><strong>0.1.x</strong> – bug fixes and small refinements driven by
+real plugin use.</li>
+<li><strong>0.2.0</strong> – custom-route extension point. Consumers can
+register additional HTTP handlers alongside the built-ins.</li>
+<li><strong>0.3.0</strong> – pluggable persistence for
+<code>AuthStore</code>. Default stays in-memory; production deployments
+can opt into a persisted backend.</li>
+<li><strong>1.0.0</strong> – semver lock. After at least one external
+consumer has integrated and the API has been stable for two minor
+versions.</li>
+</ol>
+<h2 id="when-to-use-a-different-tool">When to use a different tool</h2>
+<p>Use <code>@hmcts/crime-mcp-register</code> when you need:</p>
+<ul>
+<li>An MCP server that runs on HMCTS Crime infrastructure</li>
+<li>Per-developer GitHub identity in production</li>
+<li>Knowledge cached from GitHub repositories</li>
+<li>A consistent transport story across local-dev and hosted</li>
+</ul>
+<p>Use the bare <code>@modelcontextprotocol/sdk</code> directly when you
+need:</p>
+<ul>
+<li>A non-GitHub identity provider</li>
+<li>A non-SSE transport (e.g. stdio-only with no HTTP at all and no
+caching)</li>
+<li>An MCP server outside HMCTS Crime infrastructure</li>
+<li>Custom HTTP routes that aren’t expressible as tools</li>
+</ul>
+<p>There is no shame in choosing the bare SDK; this register is
+opinionated on purpose. The opinions are what make it useful for our
+specific ecosystem and a poor fit elsewhere.</p>
+</body>
+</html>

@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>ARCHITECTURE</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">ARCHITECTURE</h1>
+</header>
+<h1 id="architecture-hmctscrime-mcp-register">Architecture –
+<code>@hmcts/crime-mcp-register</code></h1>
+<p>This document is the structural reference for
+<code>@hmcts/crime-mcp-register</code>. It describes how the package is
+organised, what every public symbol does, the runtime lifecycle of a
+server built on top of it, and the constraints a consumer should know
+about. For the <em>why</em>, read <a
+href="./PROJECT-OVERVIEW.md">PROJECT-OVERVIEW.md</a>; for a quick start,
+read <a href="./README.md">README.md</a>.</p>
+<h2 id="contents">Contents</h2>
+<ol type="1">
+<li><a href="#1-module-layout">Module layout</a></li>
+<li><a href="#2-public-api-surface">Public API surface</a></li>
+<li><a href="#3-the-serverconfig-contract">The <code>ServerConfig</code>
+contract</a></li>
+<li><a href="#4-transport-modes-and-lifecycle">Transport modes and
+lifecycle</a></li>
+<li><a href="#5-the-sse-server-in-detail">The SSE server in
+detail</a></li>
+<li><a href="#6-the-oauth-proxy">The OAuth proxy</a></li>
+<li><a href="#7-the-github-client">The GitHub client</a></li>
+<li><a href="#8-request-context-and-per-developer-auth">Request context
+and per-developer auth</a> 8b. <a href="#8b-bundle-delivery">Bundle
+delivery</a></li>
+<li><a href="#9-error-model">Error model</a></li>
+<li><a href="#10-constraints-and-version-locks">Constraints and version
+locks</a></li>
+<li><a href="#11-extension-points">Extension points</a></li>
+</ol>
+<hr />
+<h2 id="module-layout">1. Module layout</h2>
+<pre><code>src/
++-- index.ts                  Public re-exports -- the entire surface area
++-- types/
+|   +-- tool.ts               CoreTool, ServerConfig, defineTool, JSON schema -&gt; Zod
+|   +-- prompt.ts             McpPrompt, definePrompt
++-- server/
+|   +-- create-server.ts      buildServer (factory), createServer (entry point)
+|   +-- transport.ts          Mode resolution: stdio | local-sse | remote-sse
+|   +-- sse-server.ts         HTTP server hosting MCP-over-SSE + auxiliary endpoints
+|   +-- payload-store.ts      Single-use, TTL-bounded bundle store for /payload/:id
+|   +-- tar-gz.ts             Minimal tar.gz writer (ustar + zlib, no new deps)
++-- github/
+|   +-- auth.ts               gh-CLI fallback for unauthenticated dev mode
+|   +-- client.ts             Octokit wrapper, two-tier cache, public fetch primitives
++-- auth/
+    +-- config.ts             OAuth env loading
+    +-- tokens.ts             Crypto-random token primitives + TTL constants
+    +-- pkce.ts               PKCE S256 verification
+    +-- store.ts              In-memory session + pending-auth store with GC
+    +-- github.ts              OAuth client for github.com (code exchange, refresh, /user)
+    +-- endpoints.ts          Six HTTP handlers for the OAuth flow + Bearer middleware
+    +-- context.ts            AsyncLocalStorage-backed request context</code></pre>
+<p>Total: 16 source files, ~2050 lines. Single-file modules where the
+unit is small enough; folder-as-module where the surface needs more than
+one file (server, github, auth).</p>
+<p>The dependency direction is one-way: <code>server</code> depends on
+<code>auth</code> and <code>github</code>; <code>auth</code> depends
+only on <code>auth/*</code>; <code>github</code> depends on
+<code>auth/context</code> for session lookup but not on the rest. There
+are no cyclic imports. The new <code>server/payload-store.ts</code> and
+<code>server/tar-gz.ts</code> modules are leaves – nothing in the
+codebase depends on them; they exist purely as primitives for consumer
+plugins to import.</p>
+<h2 id="public-api-surface">2. Public API surface</h2>
+<p>Every export is re-exported from <code>src/index.ts</code>. Nothing
+else is part of the public contract; consumer code must not reach into
+<code>dist/server/...</code> or similar paths.</p>
+<h3 id="exports">Exports</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// GitHub client</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> { getGitHubToken<span class="op">,</span> fetchFile<span class="op">,</span> listFiles<span class="op">,</span> searchInFiles<span class="op">,</span> chunk<span class="op">,</span> invalidateCache }<span class="op">;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> { RepoConfig<span class="op">,</span> FileResult<span class="op">,</span> SearchMatch }<span class="op">;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">// Tool definition</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> { defineTool }<span class="op">;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> { CoreTool<span class="op">,</span> JsonSchema<span class="op">,</span> JsonSchemaProperty<span class="op">,</span> ToolResult<span class="op">,</span> ServerConfig }<span class="op">;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">// Prompt definition</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> { definePrompt }<span class="op">;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> { McpPrompt<span class="op">,</span> PromptArgument<span class="op">,</span> PromptMessage<span class="op">,</span> PromptResult }<span class="op">;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co">// Server factory</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> { createServer<span class="op">,</span> buildServer }<span class="op">;</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> { CreateServerConfig<span class="op">,</span> ServerFactory }<span class="op">;</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> { TransportMode<span class="op">,</span> TransportConfig }<span class="op">;</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co">// Auth (only relevant if you enable OAuth)</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> { AuthStore }<span class="op">;</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> { Session<span class="op">,</span> PendingAuth<span class="op">,</span> PendingAuthWithCode }<span class="op">;</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> { loadOAuthConfigFromEnv }<span class="op">;</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> { OAuthConfig }<span class="op">;</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> { AuthDeps }<span class="op">;</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> { runWithSession<span class="op">,</span> getCurrentSession }<span class="op">;</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> { RequestContext }<span class="op">;</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="co">// Bundle delivery (one-time download URLs for seeding developer machines)</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> { storePayload<span class="op">,</span> payloadStoreSize }<span class="op">;</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> { buildTarGz }<span class="op">;</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> { TarEntry }<span class="op">;</span></span></code></pre></div>
+<h3 id="what-each-does-in-a-sentence">What each does, in a sentence</h3>
+<table>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 6%" />
+<col style="width: 70%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Export</th>
+<th>Kind</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>defineTool</code></td>
+<td>fn</td>
+<td>Declare a tool: name, description, JSON schema, async handler.
+Returns a <code>CoreTool</code>.</td>
+</tr>
+<tr class="even">
+<td><code>CoreTool</code></td>
+<td>type</td>
+<td>Internal representation of a tool, including the auto-generated Zod
+schema.</td>
+</tr>
+<tr class="odd">
+<td><code>JsonSchema</code> / <code>Property</code></td>
+<td>types</td>
+<td>The subset of JSON Schema <code>defineTool</code> accepts.</td>
+</tr>
+<tr class="even">
+<td><code>ToolResult</code></td>
+<td>type</td>
+<td><code>Record&lt;string, unknown&gt;</code> – anything
+JSON-serialisable a tool returns.</td>
+</tr>
+<tr class="odd">
+<td><code>ServerConfig</code></td>
+<td>type</td>
+<td>Identity (name, version, description), optional
+<code>instructions</code>, the tool list.</td>
+</tr>
+<tr class="even">
+<td><code>definePrompt</code></td>
+<td>fn</td>
+<td>Identity helper for <code>McpPrompt</code> declarations (no
+transformation; symmetry with <code>defineTool</code>).</td>
+</tr>
+<tr class="odd">
+<td><code>McpPrompt</code></td>
+<td>type</td>
+<td>A prompt visible in Claude Code as a slash command under the
+server’s namespace.</td>
+</tr>
+<tr class="even">
+<td><code>PromptArgument</code></td>
+<td>type</td>
+<td>Single argument a prompt accepts.</td>
+</tr>
+<tr class="odd">
+<td><code>PromptResult</code></td>
+<td>type</td>
+<td>What a prompt handler returns – a list of role/content
+messages.</td>
+</tr>
+<tr class="even">
+<td><code>buildServer</code></td>
+<td>fn</td>
+<td>Pure factory: returns a fresh <code>Server</code> instance with
+tools and prompts registered. Called once for stdio, once per connection
+for SSE.</td>
+</tr>
+<tr class="odd">
+<td><code>createServer</code></td>
+<td>fn</td>
+<td>Public entry point: builds, picks transport, connects.</td>
+</tr>
+<tr class="even">
+<td><code>CreateServerConfig</code></td>
+<td>type</td>
+<td><code>ServerConfig</code> plus optional <code>prompts</code> and
+<code>transport</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>ServerFactory</code></td>
+<td>type</td>
+<td><code>() =&gt; Server</code> – what <code>buildServer</code>
+produces, what the transport layer expects.</td>
+</tr>
+<tr class="even">
+<td><code>TransportConfig</code></td>
+<td>type</td>
+<td>Mode, port, host, version loader, optional auth deps, enforce
+flag.</td>
+</tr>
+<tr class="odd">
+<td><code>TransportMode</code></td>
+<td>type</td>
+<td><code>'local-stdio' \| 'local-sse' \| 'remote-sse'</code>.</td>
+</tr>
+<tr class="even">
+<td><code>RepoConfig</code></td>
+<td>type</td>
+<td><code>{ owner, repo, branch }</code> – every github-client call
+takes one.</td>
+</tr>
+<tr class="odd">
+<td><code>FileResult</code></td>
+<td>type</td>
+<td><code>{ path, content }</code> (declared but not currently used by
+any export in 0.1.0).</td>
+</tr>
+<tr class="even">
+<td><code>SearchMatch</code></td>
+<td>type</td>
+<td><code>{ path, matches[] }</code> returned by
+<code>searchInFiles</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>getGitHubToken</code></td>
+<td>fn</td>
+<td><code>gh auth token</code> execSync wrapper. Throws a banner if gh
+isn’t logged in.</td>
+</tr>
+<tr class="even">
+<td><code>fetchFile</code></td>
+<td>fn</td>
+<td>Fetch a file by path, with two-tier (tree + file) cache.</td>
+</tr>
+<tr class="odd">
+<td><code>listFiles</code></td>
+<td>fn</td>
+<td>List files under a base path. Recursive only – the boolean is
+reserved.</td>
+</tr>
+<tr class="even">
+<td><code>searchInFiles</code></td>
+<td>fn</td>
+<td>Substring search across files, batched for concurrency control.</td>
+</tr>
+<tr class="odd">
+<td><code>chunk</code></td>
+<td>fn</td>
+<td>Generic array chunker, exposed because clients sometimes want the
+same batching behaviour.</td>
+</tr>
+<tr class="even">
+<td><code>invalidateCache</code></td>
+<td>fn</td>
+<td>Clear all caches, or scope to one <code>RepoConfig</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>AuthStore</code></td>
+<td>class</td>
+<td>In-memory store for pending-auth and session records. Has a GC
+timer.</td>
+</tr>
+<tr class="even">
+<td><code>Session</code></td>
+<td>type</td>
+<td>Long-lived record: our token pair + GitHub token pair +
+identity.</td>
+</tr>
+<tr class="odd">
+<td><code>PendingAuth</code></td>
+<td>type</td>
+<td>Short-lived record between <code>/authorize</code> and
+<code>/callback</code>.</td>
+</tr>
+<tr class="even">
+<td><code>PendingAuthWithCode</code></td>
+<td>type</td>
+<td>Short-lived record between <code>/callback</code> and the client’s
+<code>/token</code> POST.</td>
+</tr>
+<tr class="odd">
+<td><code>loadOAuthConfigFromEnv</code></td>
+<td>fn</td>
+<td>Read OAuth config from env vars; return <code>undefined</code> if
+any required value missing.</td>
+</tr>
+<tr class="even">
+<td><code>OAuthConfig</code></td>
+<td>type</td>
+<td><code>{ githubClientId, githubClientSecret, baseUrl }</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>AuthDeps</code></td>
+<td>type</td>
+<td>What the auth handlers need:
+<code>{ store, config, scopes? }</code>.</td>
+</tr>
+<tr class="even">
+<td><code>runWithSession</code></td>
+<td>fn</td>
+<td>Run a callback within an AsyncLocalStorage scope carrying a
+session.</td>
+</tr>
+<tr class="odd">
+<td><code>getCurrentSession</code></td>
+<td>fn</td>
+<td>Read the session from the current async scope, or
+<code>undefined</code>.</td>
+</tr>
+<tr class="even">
+<td><code>RequestContext</code></td>
+<td>type</td>
+<td>The structure stored in AsyncLocalStorage:
+<code>{ session }</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>storePayload</code></td>
+<td>fn</td>
+<td>Stash a <code>Buffer</code> bundle in the in-memory single-use
+store; returns a 32-char base64url id.</td>
+</tr>
+<tr class="even">
+<td><code>payloadStoreSize</code></td>
+<td>fn</td>
+<td>Number of bundles currently held; used by <code>/health</code>-style
+diagnostics.</td>
+</tr>
+<tr class="odd">
+<td><code>buildTarGz</code></td>
+<td>fn</td>
+<td>Pure tar.gz writer. <code>(entries: TarEntry[]) =&gt; Buffer</code>.
+UTF-8 no-BOM, ustar format.</td>
+</tr>
+<tr class="even">
+<td><code>TarEntry</code></td>
+<td>type</td>
+<td><code>{ path: string; content: string }</code> – one file in the
+bundle.</td>
+</tr>
+</tbody>
+</table>
+<p>The complete behaviour of each is described later in this
+document.</p>
+<h2 id="the-serverconfig-contract">3. The <code>ServerConfig</code>
+contract</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> ServerConfig {</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  name<span class="op">:</span> <span class="dt">string</span><span class="op">;</span>            <span class="co">// MCP server name; appears in Claude Code as the namespace</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  version<span class="op">:</span> <span class="dt">string</span><span class="op">;</span>         <span class="co">// semver string; appears in initialize-response</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  description<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span>    <span class="co">// free-text; surfaced in some clients</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  instructions<span class="op">?:</span> <span class="dt">string</span><span class="op">;</span>   <span class="co">// model-facing system instructions</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  tools<span class="op">:</span> CoreTool[]<span class="op">;</span>       <span class="co">// every tool callable on this server</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> CreateServerConfig <span class="kw">extends</span> ServerConfig {</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  prompts<span class="op">?:</span> McpPrompt[]<span class="op">;</span>   <span class="co">// optional slash commands under /mcp__&lt;name&gt;__&lt;prompt&gt;</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  transport<span class="op">?:</span> TransportConfig<span class="op">;</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<h3 id="name-and-version"><code>name</code> and
+<code>version</code></h3>
+<p>Identity, surfaced in MCP’s <code>initialize</code> response. The
+name becomes the namespace prefix Claude Code uses to surface tools
+(<code>mcp__&lt;name&gt;__&lt;tool&gt;</code>) and prompts
+(<code>/mcp__&lt;name&gt;__&lt;prompt&gt;</code>).</p>
+<h3 id="description"><code>description</code></h3>
+<p>Optional. Some MCP clients render it; Claude Code currently does not
+give it special treatment. Useful for human-readable identification in
+logs and any future tooling.</p>
+<h3 id="instructions"><code>instructions</code></h3>
+<p>The single most important field for plugin behaviour. It is text
+injected into the model’s system prompt <strong>every turn</strong> for
+the lifetime of the connection. Claude Code does not show it in the
+terminal UI; the developer never sees it directly. It is for the
+model.</p>
+<p>Practical use: this is where the consuming plugin tells Claude how to
+use its tools, what first-action checks to perform, when to ask the
+developer before doing something destructive, and so on. The
+<code>crime-frontend-developer-mcp</code> plugin’s
+<code>instructions</code> field is what implements its three-branch
+first-action check (read install marker, read update flag, decide what
+to do).</p>
+<p>The field is plumbed through to the SDK at the
+<code>ServerOptions</code> level, alongside <code>capabilities</code>.
+Older SDK versions silently ignore unknown fields at this position;
+current versions surface them.</p>
+<h3 id="tools"><code>tools</code></h3>
+<p>An array of <code>CoreTool</code> values, each produced by
+<code>defineTool</code>. Order does not matter. Tool names must be
+unique within the array; duplicates cause later definitions to win in
+the <code>tools.find</code> lookup at dispatch time, which is almost
+certainly not what the consumer wants.</p>
+<h3 id="prompts-optional"><code>prompts</code> (optional)</h3>
+<p>If supplied, the server advertises the <code>prompts</code>
+capability in the initialize-response, and
+<code>ListPromptsRequest</code> / <code>GetPromptRequest</code> handlers
+are registered. If empty or omitted, the prompts capability is not
+advertised at all.</p>
+<h3 id="transport-optional"><code>transport</code> (optional)</h3>
+<p>If omitted, transport is resolved from the
+<code>CRIME_MCP_MODE</code> environment variable, defaulting to
+<code>local-stdio</code>. See <a
+href="#4-transport-modes-and-lifecycle">section 4</a>.</p>
+<h2 id="transport-modes-and-lifecycle">4. Transport modes and
+lifecycle</h2>
+<h3 id="mode-selection">Mode selection</h3>
+<pre><code>TransportConfig.mode (explicit)
+  v (if absent)
+process.env.CRIME_MCP_MODE
+  v (if absent)
+&#39;local-stdio&#39;</code></pre>
+<p><code>CRIME_MCP_MODE</code> accepts <code>'stdio'</code>,
+<code>'dev'</code>, or <code>'prod'</code>, mapped to
+<code>'local-stdio'</code>, <code>'local-sse'</code>, and
+<code>'remote-sse'</code> respectively.</p>
+<h3 id="what-each-mode-is-for">What each mode is for</h3>
+<p><strong><code>local-stdio</code></strong> – the original MCP
+transport. The host process spawns the MCP server as a child, JSON-RPC
+over stdio. One Server instance for the lifetime of the child process.
+No HTTP surface, no auth, no SSE machinery loaded. Used for local dev
+when the consumer is willing to run a subprocess per Claude Code
+session.</p>
+<p><strong><code>local-sse</code></strong> – HTTP SSE on
+<code>127.0.0.1</code>. Default port <code>3000</code>. For local
+development when you want the production wire format (so the same server
+process can be tested against multiple clients) without OAuth. The
+<code>/version</code> endpoint, GitHub client (using <code>gh</code> CLI
+fallback), and <code>/invalidate-cache</code> are all live; OAuth
+endpoints are not registered.</p>
+<p><strong><code>remote-sse</code></strong> – HTTP SSE on
+<code>0.0.0.0</code>. Default port <code>8080</code>. For hosted
+deployments. Typically run with <code>auth</code> configured in
+<code>TransportConfig</code> so OAuth endpoints register and (if
+<code>enforceAuth: true</code>) <code>/sse</code> and
+<code>/messages</code> require Bearer tokens.</p>
+<h3 id="the-factory-pattern">The factory pattern</h3>
+<p><code>buildServer</code> returns a fresh <code>Server</code> instance
+every time. <code>createServer</code> hands <code>buildServer</code> to
+the transport layer as a <code>ServerFactory</code>:</p>
+<ul>
+<li><strong>stdio</strong> calls the factory once. One Server, one
+transport, lifetime bound to the process.</li>
+<li><strong>SSE</strong> calls the factory <strong>per <code>/sse</code>
+connection</strong>. The MCP SDK’s <code>Server.connect()</code> binds a
+single transport exclusively; a second connect on the same Server throws
+<em>“Already connected to a transport”</em>. So each client connection
+gets its own Server, all sharing the same tool/prompt registry through
+the closure inside the factory.</li>
+</ul>
+<h3 id="port-resolution">Port resolution</h3>
+<pre><code>TransportConfig.port (explicit)
+  v (if absent)
+process.env.PORT
+  v (if absent)
+local-sse  -&gt; 3000
+remote-sse -&gt; 8080</code></pre>
+<p><code>local-stdio</code> ignores port entirely.</p>
+<h3 id="host-resolution">Host resolution</h3>
+<p>If <code>TransportConfig.host</code> is supplied, that wins.
+Otherwise:</p>
+<ul>
+<li><code>local-sse</code> -&gt; <code>127.0.0.1</code> (loopback only –
+local dev)</li>
+<li><code>remote-sse</code> -&gt; <code>0.0.0.0</code> (listen on all
+interfaces – typical container deployment)</li>
+</ul>
+<h3 id="lazy-import">Lazy import</h3>
+<p>The SSE server module is dynamically imported only when SSE mode is
+selected. Stdio-only deployments do not load the HTTP-server code at
+all. This keeps the cold-start cost low for stdio consumers.</p>
+<h2 id="the-sse-server-in-detail">5. The SSE server in detail</h2>
+<h3 id="endpoints">Endpoints</h3>
+<table>
+<colgroup>
+<col style="width: 5%" />
+<col style="width: 29%" />
+<col style="width: 40%" />
+<col style="width: 24%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Method</th>
+<th>Path</th>
+<th>Purpose</th>
+<th>Auth-gated when <code>enforceAuth: true</code>?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GET</td>
+<td><code>/sse</code></td>
+<td>MCP transport – opens an SSE stream</td>
+<td>Yes</td>
+</tr>
+<tr class="even">
+<td>POST</td>
+<td><code>/messages?sessionId=...</code></td>
+<td>MCP message ingress for a previously-opened SSE session</td>
+<td>Inherits SSE session’s auth</td>
+</tr>
+<tr class="odd">
+<td>GET</td>
+<td><code>/health</code></td>
+<td>Liveness probe; returns active session count</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td>GET</td>
+<td><code>/version</code></td>
+<td>Serves a JSON blob the consumer’s <code>versionLoader</code>
+produces</td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td>POST</td>
+<td><code>/invalidate-cache</code></td>
+<td>Clears the GitHub client cache</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td>GET</td>
+<td><code>/payload/:id</code></td>
+<td>Single-use download of a bundle stored via
+<code>storePayload</code>. Deletes the entry on first read. The id
+itself is the capability – 192 bits of entropy.</td>
+<td>No (the random id is the auth)</td>
+</tr>
+<tr class="odd">
+<td>GET</td>
+<td><code>/.well-known/oauth-authorization-server</code></td>
+<td>RFC 8414 metadata document</td>
+<td>Only registered when <code>auth</code> provided</td>
+</tr>
+<tr class="even">
+<td>POST</td>
+<td><code>/register</code></td>
+<td>RFC 7591 dynamic client registration</td>
+<td>Only registered when <code>auth</code> provided</td>
+</tr>
+<tr class="odd">
+<td>GET</td>
+<td><code>/authorize</code></td>
+<td>OAuth flow entry – redirects to GitHub</td>
+<td>Only registered when <code>auth</code> provided</td>
+</tr>
+<tr class="even">
+<td>GET</td>
+<td><code>/callback</code></td>
+<td>GitHub redirects here after user consent</td>
+<td>Only registered when <code>auth</code> provided</td>
+</tr>
+<tr class="odd">
+<td>POST</td>
+<td><code>/token</code></td>
+<td>Code-grant and refresh-grant exchanges</td>
+<td>Only registered when <code>auth</code> provided</td>
+</tr>
+</tbody>
+</table>
+<h3 id="per-connection-state">Per-connection state</h3>
+<p>Each open SSE connection has an entry in an in-memory
+<code>Map&lt;sessionId, HttpSession&gt;</code> where
+<code>HttpSession</code> is:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>{</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  server<span class="op">:</span> <span class="bu">Server</span><span class="op">;</span>                      <span class="co">// dedicated MCP Server for this connection</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  transport<span class="op">:</span> SSEServerTransport<span class="op">;</span>       <span class="co">// the SDK transport, owns the response stream</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  authSession<span class="op">?:</span> Session<span class="op">;</span>               <span class="co">// captured at /sse open time when auth enforced</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>The session is keyed by the SDK-issued <code>sessionId</code> (a
+string). When the SSE response stream closes, the entry is removed and
+<code>Server.close()</code> is called (best-effort).</p>
+<h3 id="why-messages-doesnt-re-validate-the-bearer">Why
+<code>/messages</code> doesn’t re-validate the Bearer</h3>
+<p>When auth is enforced, the Bearer is validated <strong>once</strong>
+at <code>/sse</code> open time and the resulting <code>Session</code> is
+stored on the <code>HttpSession</code>. Subsequent
+<code>/messages</code> POSTs for the same <code>sessionId</code> inherit
+that auth context – they do not re-validate.</p>
+<p>This is intentional: Claude Code does not resend the Bearer on
+<code>/messages</code>. The Bearer travels on the SSE GET only. If the
+access token expires mid-session, the next upstream GitHub call inside a
+tool will fail, Claude Code’s transport will reconnect, and
+<code>/sse</code> will re-validate at that point.</p>
+<h3 id="async-context-binding">Async context binding</h3>
+<p>When <code>authSession</code> is present, every
+<code>/messages</code> handler runs inside
+<code>runWithSession(authSession, ...)</code>. This sets the
+AsyncLocalStorage scope so that any code inside the tool handler –
+including code awaited inside <code>fetchFile</code> or
+<code>listFiles</code> – can call <code>getCurrentSession()</code> and
+get back the right session without the session being threaded through
+every call.</p>
+<p>When <code>authSession</code> is not present (stdio, or SSE with
+<code>enforceAuth: false</code>), the wrapping is a no-op.</p>
+<h2 id="the-oauth-proxy">6. The OAuth proxy</h2>
+<p>The auth layer implements a full OAuth 2.1 + PKCE + RFC 7591 flow in
+front of GitHub. The MCP server is a <em>proxy</em>: from Claude Code’s
+perspective it is the OAuth provider; from GitHub’s perspective it is a
+confidential client running a single registered OAuth App.</p>
+<p>This indirection lets us issue our own opaque, short-lived tokens to
+Claude Code – independent of GitHub’s own token lifetimes – while still
+having a real GitHub access token in the session for upstream calls.</p>
+<h3 id="flow">Flow</h3>
+<pre><code>Claude Code                     MCP server (us)                    GitHub
+     |                                  |                              |
+     |  GET /.well-known/oauth-...      |                              |
+     | --------------------------------&gt;|                              |
+     |           metadata JSON          |                              |
+     | &lt;--------------------------------|                              |
+     |                                  |                              |
+     |  POST /register                  |                              |
+     | --------------------------------&gt;|                              |
+     |           client_id              |                              |
+     | &lt;--------------------------------|                              |
+     |                                  |                              |
+     |  GET /authorize                  |                              |
+     |  ?response_type=code             |                              |
+     |  &amp;client_id=...                  |                              |
+     |  &amp;code_challenge=...&amp;state=...   |                              |
+     | --------------------------------&gt;|                              |
+     |                                  |  302 -&gt; github.com/.../authorize
+     | &lt;--------------------------------| &lt;----------------------------+
+     |                                  |                              |
+     |   (user authenticates with GH)                                  |
+     |                                                                 |
+     |  GET /callback?code=...&amp;state=...                               |
+     | --------------------------------&gt;|                              |
+     |                                  |  POST /login/oauth/access_token
+     |                                  | ----------------------------&gt;|
+     |                                  |            token             |
+     |                                  | &lt;----------------------------|
+     |                                  |  GET /user (with token)      |
+     |                                  | ----------------------------&gt;|
+     |                                  |            login             |
+     |                                  | &lt;----------------------------|
+     |     302 -&gt; original redirect_uri                                 |
+     |            with our authcode                                    |
+     | &lt;--------------------------------|                              |
+     |                                                                 |
+     |  POST /token                                                    |
+     |  grant_type=authorization_code                                  |
+     |  code=&lt;our authcode&gt;                                            |
+     |  code_verifier=&lt;PKCE&gt;                                           |
+     | --------------------------------&gt;|                              |
+     |   { access_token, refresh_token } (OURS, not GitHub&#39;s)          |
+     | &lt;--------------------------------|                              |
+     |                                                                 |
+     |  GET /sse (Authorization: Bearer &lt;our access_token&gt;)            |
+     | --------------------------------&gt;|                              |
+     |   ... MCP traffic ...            |                              |</code></pre>
+<h3 id="token-lifetimes">Token lifetimes</h3>
+<table>
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 49%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Token</th>
+<th>Issued by</th>
+<th>Lifetime</th>
+<th>Verification</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Auth code</td>
+<td>Us</td>
+<td>60 s</td>
+<td>Single-use, looked up by code</td>
+</tr>
+<tr class="even">
+<td>Access</td>
+<td>Us</td>
+<td>1 h</td>
+<td>Map lookup by token</td>
+</tr>
+<tr class="odd">
+<td>Refresh</td>
+<td>Us</td>
+<td>2 d</td>
+<td>Map lookup by token</td>
+</tr>
+<tr class="even">
+<td>GitHub access</td>
+<td>GitHub</td>
+<td>App-defined (default: never expires)</td>
+<td>Used for upstream API calls</td>
+</tr>
+<tr class="odd">
+<td>GitHub refresh</td>
+<td>GitHub</td>
+<td>App-defined</td>
+<td>Only present if expiry enabled</td>
+</tr>
+</tbody>
+</table>
+<p>Our tokens are 384-bit base64url-encoded random bytes (48 byte buffer
+-&gt; 64 character string). Not JWTs – they have no internal structure
+and are verified by lookup, not signature. Revocation is trivial (delete
+from store); session bookkeeping is unavoidable anyway because we need
+to keep the upstream GitHub token paired with each session.</p>
+<h3 id="pkce">PKCE</h3>
+<p>Claude Code always sends PKCE with method <code>S256</code>. We never
+generate verifiers; we only verify them at <code>/token</code> against
+the challenge stashed during <code>/authorize</code>. The verification
+uses <code>timingSafeEqual</code> to avoid leaking partial-match
+information.</p>
+<p>Verifier validation enforces the RFC 7636 section 4.1 character set
+(<code>[A-Za-z0-9-._~]</code>) and length range (43-128 chars). Method
+other than <code>S256</code> is rejected – OAuth 2.1 requires it for
+public clients.</p>
+<h3 id="session-store">Session store</h3>
+<p>In-memory <code>AuthStore</code> class with three maps:</p>
+<ul>
+<li><code>sessionsByAccess</code> – keyed by our access token; for
+<code>/sse</code> Bearer validation</li>
+<li><code>sessionsByRefresh</code> – keyed by our refresh token; for
+<code>/token</code> refresh grants</li>
+<li><code>pendingByState</code> – keyed by the PKCE state parameter; for
+<code>/callback</code> lookup</li>
+<li><code>pendingByAuthCode</code> – keyed by our auth code; for
+<code>/token</code> code grants</li>
+</ul>
+<p>A periodic GC (default 60 s interval, started by
+<code>start()</code>, stopped by <code>stop()</code>) sweeps expired
+pending entries and refresh-expired sessions. <code>unref()</code> is
+called on the timer so it never blocks process shutdown.</p>
+<p>The store is not persistent. A server restart logs every developer
+out; they re-auth on next reconnect. This is documented behaviour,
+accepted because OAuth flows are cheap and the alternative (file or
+database persistence) introduces concerns disproportionate to the value
+at this scale.</p>
+<h3 id="why-a-proxy-at-all">Why a proxy at all</h3>
+<p>The MCP server doesn’t get to call <code>gh auth token</code> in
+production – there is no <code>gh</code> and there is no developer-local
+credential to inherit. Each developer’s connection needs its own GitHub
+identity, ideally with per-developer auditability and the ability to
+revoke a single developer’s access without touching the whole
+service.</p>
+<p>Without the proxy, every plugin would either share a service-account
+GitHub token (bad: no per-developer audit, hard to revoke, broad scope)
+or implement its own OAuth flow (bad: every plugin reimplementing the
+same machinery). The proxy in <code>crime-mcp-register</code> lets the
+consumer plugin opt into per-developer GitHub auth by passing
+<code>auth</code> in the transport config – and get it for free if they
+don’t need it.</p>
+<h2 id="the-github-client">7. The GitHub client</h2>
+<p>A thin Octokit wrapper with caching and per-session token
+resolution.</p>
+<h3 id="repoconfig"><code>RepoConfig</code></h3>
+<div class="sourceCode" id="cb8"><pre class="sourceCode ts"><code class="sourceCode typescript"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">interface</span> RepoConfig { owner<span class="op">:</span> <span class="dt">string</span><span class="op">;</span> repo<span class="op">:</span> <span class="dt">string</span><span class="op">;</span> branch<span class="op">:</span> <span class="dt">string</span> }</span></code></pre></div>
+<p>Every public function takes one. The cache key is
+<code>${owner}/${repo}@${branch}</code>, plus the file path for
+file-level entries.</p>
+<h3 id="public-functions">Public functions</h3>
+<ul>
+<li><code>fetchFile(config, path)</code> – single file content as
+UTF-8</li>
+<li><code>listFiles(config, basePath)</code> – paths under
+<code>basePath</code> matching the recursive tree</li>
+<li><code>searchInFiles(config, keyword, basePath, extensions, max)</code>
+– substring search across files, returning matches with line
+snippets</li>
+<li><code>chunk(arr, size)</code> – generic array chunker, exposed for
+symmetry with <code>searchInFiles</code>’s internal batching</li>
+<li><code>invalidateCache(config?)</code> – clear all caches, or scope
+to one repo</li>
+<li><code>getGitHubToken()</code> – <code>gh auth token</code> execSync
+wrapper; throws a banner if <code>gh</code> is not authenticated</li>
+</ul>
+<h3 id="two-tier-cache">Two-tier cache</h3>
+<pre><code>treeCache : Map&lt;repoKey, Map&lt;path, sha&gt;&gt;     // 1 entry per repo+branch
+fileCache : Map&lt;repoKey::path, content&gt;      // 1 entry per file</code></pre>
+<p>Both with a 24-hour TTL, sweep-on-read (a stale entry returns
+<code>undefined</code> and is deleted).</p>
+<h3 id="why-two-tiers">Why two tiers</h3>
+<p>The tree cache holds <code>path -&gt; sha</code> from a single
+recursive <code>git/getTree</code> call. With the tree cached,
+<code>fetchFile</code> can call <code>git/getBlob(file_sha)</code>
+directly, skipping GitHub’s internal directory walk and shaving real
+latency off bursty cold paths (PDK index build can request 100+ files in
+parallel).</p>
+<p>Without the tree, <code>fetchFile</code> falls back to
+<code>repos/getContent(path)</code> – one extra directory lookup per
+call, but it works without prior <code>listFiles</code>.</p>
+<h3 id="concurrency-control">Concurrency control</h3>
+<ul>
+<li>A shared <code>https.Agent</code> with <code>keepAlive: true</code>,
+<code>maxSockets: 20</code>, <code>maxFreeSockets: 10</code>. Without
+keep-alive, every Octokit call performs a fresh TCP+TLS handshake
+(150-250 ms each). One agent shared across all Octokit instances
+amortises that cost.</li>
+<li><code>searchInFiles</code> batches in groups of 5 to bound memory
+when <code>filtered</code> is large (hundreds of files); the agent’s
+socket pool is the hard ceiling.</li>
+</ul>
+<h3 id="per-session-token-resolution">Per-session token resolution</h3>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode ts"><code class="sourceCode typescript"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">createClient</span>()<span class="op">:</span> Octokit {</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> session <span class="op">=</span> <span class="fu">getCurrentSession</span>()<span class="op">;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">const</span> auth <span class="op">=</span> session <span class="op">?</span> session<span class="op">.</span><span class="at">githubAccessToken</span> <span class="op">:</span> <span class="fu">getGitHubToken</span>()<span class="op">;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="kw">new</span> <span class="fu">Octokit</span>({ auth<span class="op">,</span> request<span class="op">:</span> { agent<span class="op">:</span> sharedKeepAliveAgent } })<span class="op">;</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>The auth source depends on context:</p>
+<ul>
+<li><strong>Inside a <code>runWithSession</code> scope</strong> (an
+authenticated SSE request – OAuth enabled, valid Bearer presented), use
+the developer’s GitHub access token from their session. Each request
+runs as the developer who initiated it.</li>
+<li><strong>Outside any session scope</strong> – which means either:
+<ul>
+<li>a <code>local-stdio</code> server (no HTTP, no OAuth surface)</li>
+<li>a <code>local-sse</code> or <code>remote-sse</code> server with
+<code>enforceAuth: false</code> (OAuth endpoints exist but
+<code>/sse</code> and <code>/messages</code> are not gated)</li>
+<li><strong>a build-time script that imports <code>fetchFile</code>
+directly</strong> – for example
+<code>crime-frontend-developer-mcp</code>’s <code>generate:pdk</code>
+script, which runs as a Node process with no HTTP server at all and no
+<code>runWithSession</code> ever invoked. Every <code>fetchFile</code>
+call from such a script falls into this branch.</li>
+</ul></li>
+</ul>
+<p>In all of these the client falls back to
+<code>getGitHubToken()</code>, which calls <code>gh auth token</code>
+via <code>execSync</code>. The operator running the process – a
+developer on their laptop, a CI runner, whoever – must have
+<code>gh</code> installed and authenticated.</p>
+<p>This split is intentional. <code>gh</code> is the auth path for
+personal-machine and operator-machine use; OAuth is the auth path for
+hosted runtime serving real users. A production deployment should be
+running with <code>enforceAuth: true</code> so no request ever falls
+back to <code>gh</code>. See <a
+href="./PROJECT-OVERVIEW.md#operational-requirements-per-mode">PROJECT-OVERVIEW.md
+– Operational requirements per mode</a> for the full picture and CI
+configuration patterns.</p>
+<h3 id="cache-invalidation-paths">Cache invalidation paths</h3>
+<ul>
+<li><code>invalidateCache()</code> – wipe everything (called by
+<code>POST /invalidate-cache</code>)</li>
+<li><code>invalidateCache(config)</code> – wipe one repo</li>
+<li>The 24-hour TTL – automatic for files left undisturbed</li>
+</ul>
+<p>A consumer plugin that knows when its source repo changes (e.g. after
+a <code>update_knowledge</code> tool runs) is expected to call
+<code>invalidateCache(config)</code> explicitly to guarantee the next
+read hits remote.</p>
+<h3 id="error-handling">Error handling</h3>
+<ul>
+<li>404 on <code>getContent</code> returns the literal string
+<code>"[File not found: &lt;path&gt;]"</code>. This is a deliberate
+non-throw because consumer code often iterates through a list of
+expected files and treats individual misses as best-effort. (Subject to
+revision in a future major version.)</li>
+<li>404 on <code>getBlob</code> falls through to <code>getContent</code>
+(the blob may have been garbage-collected since the tree was
+cached).</li>
+<li>Any other error propagates to the caller.</li>
+</ul>
+<h2 id="request-context-and-per-developer-auth">8. Request context and
+per-developer auth</h2>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode ts"><code class="sourceCode typescript"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">runWithSession</span>(session<span class="op">,</span> () <span class="kw">=&gt;</span> { <span class="co">/* ... */</span> })<span class="op">;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> s <span class="op">=</span> <span class="fu">getCurrentSession</span>()<span class="op">;</span>   <span class="co">// returns the session inside that scope, else undefined</span></span></code></pre></div>
+<p>Backed by <code>node:async_hooks.AsyncLocalStorage</code>. Context
+propagates across <code>await</code> points correctly – this is what
+makes <code>fetchFile</code>’s <code>getCurrentSession()</code> lookup
+work even when called several layers deep inside a tool handler.</p>
+<p>The SSE server wraps <code>transport.handlePostMessage</code> in
+<code>runWithSession</code> when an authenticated session exists for the
+current <code>sessionId</code>. Tool handlers and any code they await
+all see the right session.</p>
+<p>For stdio deployments and unauthenticated SSE, no
+<code>runWithSession</code> call ever happens;
+<code>getCurrentSession()</code> returns <code>undefined</code>, and the
+GitHub client falls back to its <code>gh</code> CLI path.</p>
+<h2 id="b.-bundle-delivery">8b. Bundle delivery</h2>
+<p>A primitive consumer plugins use to ship files to a developer’s
+machine without putting them through the MCP tool-result channel.</p>
+<p>The problem this solves: an MCP tool result that returns 50 KB of
+JSON text gets spilled to a temp file by Claude Code, forcing additional
+reads and risking client-side encoding drift if Claude reaches for shell
+tools to handle the bulk. Bundle delivery returns a tiny tool result (a
+URL + small mutations) and ships the bulk content as a single binary
+download that <code>tar -xf</code> extracts byte-perfectly on the
+developer’s disk.</p>
+<h3 id="the-flow">The flow</h3>
+<pre><code>1. Consumer plugin tool generates files to ship; calls buildTarGz(entries) -&gt; Buffer.
+2. Consumer calls storePayload(bundle, filename, contentType) -&gt; id (32-char base64url).
+3. Consumer returns to Claude:  { downloadUrl: &lt;baseUrl&gt;/payload/&lt;id&gt;, ... }
+4. Claude (on the developer&#39;s machine) runs:  curl &lt;url&gt; -o /tmp/x.tar.gz &amp;&amp; tar -xf /tmp/x.tar.gz -C $HOME
+5. The /payload/:id handler reads-and-deletes the bundle from the store on first GET.</code></pre>
+<h3 id="why-the-delete-on-read">Why the delete-on-read</h3>
+<p>The id is a 24-byte random value (192 bits of entropy) –
+non-guessable in any practical sense. It IS the capability for that
+bundle. Once fetched, the entry is removed; a stale URL cannot be
+replayed even if leaked. Combined with the 5-minute TTL backstop, no
+bundle outlives its intended use.</p>
+<h3 id="auth-on-payloadid">Auth on /payload/:id</h3>
+<p>The endpoint is NOT gated by the OAuth Bearer middleware. Reasoning:
+the random id is the sole capability, and the consumer plugin returned
+it to Claude over the (already authenticated) MCP session. Adding a
+second auth layer on the download path would require Claude to forward
+its Bearer to a separate HTTP request – something Claude Code’s tool
+runtime does not currently do. The single-use + TTL + 192-bit entropy
+combination provides equivalent security for this use case.</p>
+<p>A future iteration could parameterise this: an optional
+Bearer-required flag on the route, useful if a consumer wants
+belt-and-braces gating.</p>
+<h3 id="tar.gz-writer">Tar.gz writer</h3>
+<p><code>buildTarGz</code> produces a standard ustar tar.gz that GNU
+tar, BSD tar, Windows 10’s built-in tar (since 1803), and 7-zip can all
+read.</p>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode ts"><code class="sourceCode typescript"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { buildTarGz<span class="op">,</span> TarEntry } <span class="im">from</span> <span class="st">&#39;@hmcts/crime-mcp-register&#39;</span><span class="op">;</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> entries<span class="op">:</span> TarEntry[] <span class="op">=</span> [</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  { path<span class="op">:</span> <span class="st">&#39;crime-frontend-claude/cp-angular/GATES.md&#39;</span><span class="op">,</span> content<span class="op">:</span> <span class="st">&#39;...&#39;</span> }<span class="op">,</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  { path<span class="op">:</span> <span class="st">&#39;.crime-frontend-developer-mcp/installed.json&#39;</span><span class="op">,</span> content<span class="op">:</span> <span class="st">&#39;...&#39;</span> }<span class="op">,</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>]<span class="op">;</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> bundle<span class="op">:</span> <span class="bu">Buffer</span> <span class="op">=</span> <span class="fu">buildTarGz</span>(entries)<span class="op">;</span>  <span class="co">// ready to store + serve</span></span></code></pre></div>
+<p>Encoding contract: file contents are written as UTF-8 bytes with no
+BOM, regardless of the developer’s locale. <code>tar -xf</code>
+preserves those bytes verbatim – no re-encoding, no character mangling.
+This is the property that makes bundle delivery encoding-correct where
+Claude-driven PowerShell writes were not.</p>
+<p>Constraints: - Path length capped at 100 bytes (ustar
+<code>name</code> field). For the consumer plugins shipping today this
+is comfortable; for deeper paths, ustar has a <code>prefix</code> field
+that’s not currently used. - Entries must be regular files. Directories
+are implicit (created by <code>tar -xf</code> when extracting a file
+with that prefix). - File mode is fixed at <code>0644</code>,
+owner/group <code>root</code> (the values are cosmetic; what matters on
+extraction is the developer’s umask).</p>
+<h3 id="payload-store">Payload store</h3>
+<p>Single-use, TTL-bounded, in-memory.</p>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode ts"><code class="sourceCode typescript"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { storePayload<span class="op">,</span> payloadStoreSize } <span class="im">from</span> <span class="st">&#39;@hmcts/crime-mcp-register&#39;</span><span class="op">;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> id <span class="op">=</span> <span class="fu">storePayload</span>(bundle<span class="op">,</span> <span class="st">&#39;cfd-setup.tar.gz&#39;</span><span class="op">,</span> <span class="st">&#39;application/gzip&#39;</span>)<span class="op">;</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co">//   -&gt; &#39;24-byte base64url string&#39;</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="bu">console</span><span class="op">.</span><span class="fu">log</span>(<span class="fu">payloadStoreSize</span>())<span class="op">;</span>  <span class="co">// current count, for diagnostics</span></span></code></pre></div>
+<p>The store has a 1-minute GC sweep that runs while there are entries,
+removing anything past its 5-minute TTL. The interval is
+<code>unref</code>’d so it doesn’t keep the Node process alive on its
+own.</p>
+<h3 id="reusability">Reusability</h3>
+<p>These primitives are consumer-agnostic. Any future MCP plugin that
+needs to seed developer machines (cp-react-developer-mcp,
+cp-be-developer-mcp, or unrelated work) can import and use them without
+modification:</p>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode ts"><code class="sourceCode typescript"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { defineTool<span class="op">,</span> buildTarGz<span class="op">,</span> storePayload } <span class="im">from</span> <span class="st">&#39;@hmcts/crime-mcp-register&#39;</span><span class="op">;</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> <span class="kw">const</span> setupTool <span class="op">=</span> <span class="fu">defineTool</span>({</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  name<span class="op">:</span> <span class="st">&#39;setup_my_workspace&#39;</span><span class="op">,</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  description<span class="op">:</span> <span class="st">&#39;...&#39;</span><span class="op">,</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  handler<span class="op">:</span> <span class="kw">async</span> () <span class="kw">=&gt;</span> {</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> bundle <span class="op">=</span> <span class="fu">buildTarGz</span>(myEntries)<span class="op">;</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">const</span> id <span class="op">=</span> <span class="fu">storePayload</span>(bundle<span class="op">,</span> <span class="st">&#39;myplugin.tar.gz&#39;</span><span class="op">,</span> <span class="st">&#39;application/gzip&#39;</span>)<span class="op">;</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> { downloadUrl<span class="op">:</span> <span class="vs">`</span><span class="sc">${</span>baseUrl<span class="sc">}</span><span class="vs">/payload/</span><span class="sc">${</span>id<span class="sc">}</span><span class="vs">`</span><span class="op">,</span> <span class="co">/* ... */</span> }<span class="op">;</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<p>The <code>/payload/:id</code> route is part of the SSE server, so any
+plugin that runs on <code>crime-mcp-register</code>’s
+<code>createServer</code> gets it for free.</p>
+<h2 id="error-model">9. Error model</h2>
+<p>Three layers of error handling:</p>
+<ol type="1">
+<li><strong>Tool handler errors.</strong> Caught by the
+<code>CallToolRequestSchema</code> handler in
+<code>create-server.ts</code>. The error message is wrapped in a
+<code>{ isError: true, content: [{ type: 'text', text: '...' }] }</code>
+response. The MCP SDK propagates this to the client; Claude Code
+surfaces it as a tool error.</li>
+<li><strong>OAuth endpoint errors.</strong> Each handler writes an HTTP
+error response directly (<code>res.writeHead(...).end(...)</code>). For
+OAuth-protocol errors, the body follows RFC 6749 / RFC 7591 shape
+(<code>{ error, error_description }</code>).</li>
+<li><strong>Transport-level errors.</strong> Logged to
+<code>console.error</code> with a <code>[sse-server]</code> prefix. The
+connection in question is dropped; other connections are
+unaffected.</li>
+</ol>
+<p>There is no central logger. Consumers wanting structured logging are
+expected to wrap tool handlers themselves; the register’s own log
+surface is bounded and prefixed.</p>
+<h2 id="constraints-and-version-locks">10. Constraints and version
+locks</h2>
+<h3 id="octokit-20.1.2">Octokit <code>^20.1.2</code></h3>
+<p>Locked to the v20 line by deliberate decision. Octokit v21+ is
+ESM-only. Migrating to ESM would mean either: - Migrating this package
+and every consumer to ESM, or - Adopting a CJS/ESM dual-build setup</p>
+<p>Either is real work; neither is in scope for the 0.1.0 line.
+Documented as a constraint here so a contributor doesn’t accidentally
+bump it.</p>
+<h3
+id="modelcontextprotocolsdk-1.0.0"><code>@modelcontextprotocol/sdk</code>
+<code>^1.0.0</code></h3>
+<p>Tracks the SDK’s public API. The <code>instructions</code> field on
+<code>ServerOptions</code> is honoured by SDK 1.x; older 0.x versions
+silently ignore it. We rely on the 1.x behaviour.</p>
+<h3 id="zod-3.22.0"><code>zod</code> <code>^3.22.0</code></h3>
+<p>Used for the JSON-schema -&gt; Zod conversion in
+<code>defineTool</code>. A future major of zod (v4) would require
+revisiting <code>jsonPropertyToZod</code> and
+<code>jsonSchemaToZod</code> shapes. Not blocking for 0.1.0.</p>
+<h3 id="node-version">Node version</h3>
+<p>Tested on Node 20. AsyncLocalStorage is stable since Node 16.
+<code>fetch</code> is built-in since Node 18. Earlier Node versions are
+not supported.</p>
+<h3 id="file-size-ceilings">File size ceilings</h3>
+<p>No hard ceiling, but every source file is currently under 500 lines.
+<code>endpoints.ts</code> is the largest at 466. This is a soft
+convention to keep files reviewable; it is not enforced by anything in
+the build.</p>
+<h2 id="extension-points">11. Extension points</h2>
+<h3 id="adding-a-tool-to-a-consumer-plugin">Adding a tool to a consumer
+plugin</h3>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode ts"><code class="sourceCode typescript"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { defineTool<span class="op">,</span> <span class="kw">type</span> CoreTool } <span class="im">from</span> <span class="st">&#39;@hmcts/crime-mcp-register&#39;</span><span class="op">;</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> myTool<span class="op">:</span> CoreTool <span class="op">=</span> <span class="fu">defineTool</span>({</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  name<span class="op">:</span> <span class="st">&#39;my_tool&#39;</span><span class="op">,</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  description<span class="op">:</span> <span class="st">&#39;What it does, in detail. Used by the model verbatim.&#39;</span><span class="op">,</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  inputSchema<span class="op">:</span> {</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    type<span class="op">:</span> <span class="st">&#39;object&#39;</span><span class="op">,</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    properties<span class="op">:</span> {</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>      query<span class="op">:</span> { type<span class="op">:</span> <span class="st">&#39;string&#39;</span><span class="op">,</span> description<span class="op">:</span> <span class="st">&#39;The query to run.&#39;</span> }<span class="op">,</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>      limit<span class="op">:</span> { type<span class="op">:</span> <span class="st">&#39;number&#39;</span><span class="op">,</span> description<span class="op">:</span> <span class="st">&#39;Max results.&#39;</span><span class="op">,</span> <span class="cf">default</span><span class="op">:</span> <span class="dv">10</span> }<span class="op">,</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    }<span class="op">,</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    required<span class="op">:</span> [<span class="st">&#39;query&#39;</span>]<span class="op">,</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>  handler<span class="op">:</span> <span class="kw">async</span> ({ query<span class="op">,</span> limit }) <span class="kw">=&gt;</span> {</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ... do work ...</span></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> { results<span class="op">:</span> [<span class="op">...</span>] }<span class="op">;</span></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<p><code>defineTool</code> runs the JSON schema through
+<code>jsonSchemaToZod</code> and stores the resulting Zod schema on the
+returned <code>CoreTool</code>. At dispatch time the incoming arguments
+are parsed by Zod; failures become tool errors with the Zod message in
+the body.</p>
+<h3 id="adding-a-prompt">Adding a prompt</h3>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode ts"><code class="sourceCode typescript"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { definePrompt } <span class="im">from</span> <span class="st">&#39;@hmcts/crime-mcp-register&#39;</span><span class="op">;</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> myPrompt <span class="op">=</span> <span class="fu">definePrompt</span>({</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  name<span class="op">:</span> <span class="st">&#39;review_pull_request&#39;</span><span class="op">,</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  description<span class="op">:</span> <span class="st">&#39;Generate a PR review draft.&#39;</span><span class="op">,</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  arguments<span class="op">:</span> [</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    { name<span class="op">:</span> <span class="st">&#39;pr_url&#39;</span><span class="op">,</span> description<span class="op">:</span> <span class="st">&#39;GitHub PR URL&#39;</span><span class="op">,</span> required<span class="op">:</span> <span class="kw">true</span> }<span class="op">,</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  ]<span class="op">,</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  handler<span class="op">:</span> <span class="kw">async</span> ({ pr_url }) <span class="kw">=&gt;</span> ({</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>    description<span class="op">:</span> <span class="st">&#39;Generated PR review&#39;</span><span class="op">,</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    messages<span class="op">:</span> [{ role<span class="op">:</span> <span class="st">&#39;user&#39;</span><span class="op">,</span> content<span class="op">:</span> { type<span class="op">:</span> <span class="st">&#39;text&#39;</span><span class="op">,</span> text<span class="op">:</span> <span class="vs">`Review </span><span class="sc">${</span>pr_url<span class="sc">}</span><span class="vs">...`</span> } }]<span class="op">,</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>  })<span class="op">,</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<p>In Claude Code the prompt becomes available as
+<code>/mcp__&lt;server-name&gt;__review_pull_request</code>.</p>
+<h3 id="enabling-oauth">Enabling OAuth</h3>
+<div class="sourceCode" id="cb18"><pre
+class="sourceCode ts"><code class="sourceCode typescript"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> {</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  createServer<span class="op">,</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  loadOAuthConfigFromEnv<span class="op">,</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  AuthStore<span class="op">,</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>} <span class="im">from</span> <span class="st">&#39;@hmcts/crime-mcp-register&#39;</span><span class="op">;</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> config <span class="op">=</span> <span class="fu">loadOAuthConfigFromEnv</span>()<span class="op">;</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="op">!</span>config) <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">Error</span>(<span class="st">&#39;OAuth env vars not set&#39;</span>)<span class="op">;</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> store <span class="op">=</span> <span class="kw">new</span> <span class="fu">AuthStore</span>()<span class="op">;</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>store<span class="op">.</span><span class="fu">start</span>()<span class="op">;</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> <span class="fu">createServer</span>({</span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>  name<span class="op">:</span> <span class="st">&#39;my-mcp&#39;</span><span class="op">,</span></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>  version<span class="op">:</span> <span class="st">&#39;1.0.0&#39;</span><span class="op">,</span></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>  tools<span class="op">:</span> [<span class="op">...</span>]<span class="op">,</span></span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>  transport<span class="op">:</span> {</span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>    mode<span class="op">:</span> <span class="st">&#39;remote-sse&#39;</span><span class="op">,</span></span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>    auth<span class="op">:</span> { store<span class="op">,</span> config }<span class="op">,</span></span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>    enforceAuth<span class="op">:</span> <span class="kw">true</span><span class="op">,</span></span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<p>Required environment variables: - <code>GITHUB_OAUTH_CLIENT_ID</code>
+- <code>GITHUB_OAUTH_CLIENT_SECRET</code> - <code>OAUTH_BASE_URL</code>
+(full URL, no trailing slash; must match the GitHub OAuth App’s callback
+URL)</p>
+<h3 id="adding-a-version-endpoint">Adding a <code>/version</code>
+endpoint</h3>
+<div class="sourceCode" id="cb19"><pre
+class="sourceCode ts"><code class="sourceCode typescript"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> <span class="fu">createServer</span>({</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  transport<span class="op">:</span> {</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    mode<span class="op">:</span> <span class="st">&#39;remote-sse&#39;</span><span class="op">,</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    versionLoader<span class="op">:</span> <span class="kw">async</span> () <span class="kw">=&gt;</span> <span class="bu">JSON</span><span class="op">.</span><span class="fu">stringify</span>({</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>      hash<span class="op">:</span> <span class="st">&#39;abc123...&#39;</span><span class="op">,</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>      generated<span class="op">:</span> <span class="kw">new</span> <span class="bu">Date</span>()<span class="op">.</span><span class="fu">toISOString</span>()<span class="op">,</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>    })<span class="op">,</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<p>The loader runs on every <code>GET /version</code> (no caching
+layered between it and the response). If the loader throws, a 500
+response is written.</p>
+<p>The <code>crime-frontend-developer-mcp</code> SessionStart hook polls
+<code>http://localhost:3000/version</code> on dev to compare against the
+locally-cached hash; that’s the canonical use of this endpoint.</p>
+<h3 id="adding-a-custom-http-endpoint">Adding a custom HTTP
+endpoint</h3>
+<p>Not currently supported through the public API. The HTTP server in
+<code>sse-server.ts</code> is closed; routing is hard-coded. A consumer
+needing this today would have to fork; future work could expose a “user
+routes” hook.</p>
+<h3 id="adding-a-custom-auth-source">Adding a custom auth source</h3>
+<p>Same answer. The OAuth proxy is hard-wired to GitHub. A future minor
+version could parameterise the upstream IdP.</p>
+<hr />
+<h2 id="appendix-request-flow-end-to-end">Appendix – request flow
+end-to-end</h2>
+<p>For an authenticated SSE deployment with one tool call:</p>
+<ol type="1">
+<li>Claude Code GETs
+<code>/.well-known/oauth-authorization-server</code>. Metadata JSON
+returned.</li>
+<li>Claude Code POSTs <code>/register</code>. Receives
+<code>client_id</code>.</li>
+<li>Claude Code GETs <code>/authorize</code> with
+<code>code_challenge</code> and <code>state</code>. Server stashes a
+<code>PendingAuth</code> keyed by <code>state</code> and 302s to
+GitHub.</li>
+<li>User logs in on GitHub. GitHub 302s back to
+<code>/callback?code=...&amp;state=...</code>.</li>
+<li>Server takes the pending entry by state, exchanges the GitHub code
+for a GitHub access token, fetches the GitHub user login, generates an
+internal auth code, stores a <code>PendingAuthWithCode</code>, and 302s
+to Claude Code’s original <code>redirect_uri</code> with the auth
+code.</li>
+<li>Claude Code POSTs <code>/token</code> with
+<code>grant_type=authorization_code</code>,
+<code>code=&lt;our auth code&gt;</code>,
+<code>code_verifier=&lt;PKCE&gt;</code>. Server verifies the PKCE,
+generates our access + refresh tokens, creates a <code>Session</code>,
+stores it indexed by both tokens, and responds with the token pair.</li>
+<li>Claude Code GETs <code>/sse</code> with
+<code>Authorization: Bearer &lt;our access token&gt;</code>. The
+server’s middleware looks up the session, captures it on the
+<code>HttpSession</code>, opens the SSE stream, calls
+<code>factory()</code> to build a fresh Server, connects the SSE
+transport.</li>
+<li>Claude Code POSTs <code>/messages?sessionId=...</code> with an MCP
+<code>tools/call</code> request. The server retrieves the
+<code>HttpSession</code>, runs <code>transport.handlePostMessage</code>
+inside <code>runWithSession(session, ...)</code>.</li>
+<li>The SDK dispatches to the tool handler. The handler calls
+<code>fetchFile</code>. <code>fetchFile</code> calls
+<code>createClient()</code>, which calls
+<code>getCurrentSession()</code>, gets back the session, and uses
+<code>session.githubAccessToken</code> for the Octokit instance. Octokit
+reuses the shared keep-alive agent’s socket.</li>
+<li>GitHub responds. The handler returns a result. The SDK serialises it
+over the SSE stream. Claude Code receives the response.</li>
+</ol>
+<p>For an unauthenticated stdio deployment, steps 1-7 don’t happen; step
+8 becomes a stdio JSON-RPC message; step 9 falls through to
+<code>getGitHubToken()</code> and the <code>gh</code> CLI.</p>
+</body>
+</html>
