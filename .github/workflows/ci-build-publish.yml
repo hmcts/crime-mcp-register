@@ -1,0 +1,166 @@
+name: CI Build and Publish
+
+on:
+  workflow_call:
+    secrets:
+      AZURE_DEVOPS_ARTIFACT_USERNAME:
+        required: true
+      AZURE_DEVOPS_ARTIFACT_TOKEN:
+        required: true
+    inputs:
+      environment:
+        required: true
+        type: string
+        default: dev
+      is_release:
+        required: false
+        type: boolean
+        default: false
+      is_publish:
+        required: true
+        type: boolean
+
+env:
+  AZURE_NPM_FEED_URL: https://pkgs.dev.azure.com/hmcts/Artifacts/_packaging/hmcts-lib/npm/registry/
+  NPM_SCOPE: '@hmcts'
+  NODE_VERSION: '20'
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+    outputs:
+      artefact_version: ${{ inputs.is_release && steps.artefact.outputs.release_version || steps.artefact.outputs.draft_version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Generate Artefact Version
+        id: artefact
+        uses: hmcts/artefact-version-action@v1
+        with:
+          release: ${{ inputs.is_release }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build:
+    needs: [version]
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+    outputs:
+      repo_name: ${{ steps.repo_vars.outputs.repo_name }}
+      artefact_name: ${{ steps.repo_vars.outputs.artefact_name }}
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Set version in package.json
+        env:
+          ARTEFACT_VERSION: ${{ needs.version.outputs.artefact_version }}
+        run: |
+          echo "Building with ARTEFACT_VERSION=$ARTEFACT_VERSION"
+          npm version "$ARTEFACT_VERSION" --no-git-tag-version --allow-same-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Pack tarball
+        run: npm pack
+
+      - name: Extract repo name
+        id: repo_vars
+        run: |
+          repo_name=${GITHUB_REPOSITORY##*/}
+          echo "repo_name=${repo_name}" >> $GITHUB_OUTPUT
+          echo "artefact_name=${repo_name}-${{ needs.version.outputs.artefact_version }}" >> $GITHUB_OUTPUT
+
+      - name: Upload tarball artefact
+        uses: actions/upload-artifact@v7
+        with:
+          name: npm-tarball
+          path: '*.tgz'
+
+  publish-artefact:
+    needs: [version, build]
+    if: ${{ inputs.is_publish }}
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Configure .npmrc for Azure Artifacts
+        env:
+          AZURE_DEVOPS_ARTIFACT_USERNAME: ${{ secrets.AZURE_DEVOPS_ARTIFACT_USERNAME }}
+          AZURE_DEVOPS_ARTIFACT_TOKEN: ${{ secrets.AZURE_DEVOPS_ARTIFACT_TOKEN }}
+        run: |
+          if [ -z "$AZURE_DEVOPS_ARTIFACT_USERNAME" ]; then
+            echo "::warning::AZURE_DEVOPS_ARTIFACT_USERNAME is null or not set"
+          fi
+          if [ -z "$AZURE_DEVOPS_ARTIFACT_TOKEN" ]; then
+            echo "::warning::AZURE_DEVOPS_ARTIFACT_TOKEN is null or not set"
+          fi
+
+          # Azure Artifacts npm feeds require a base64-encoded PAT as the password.
+          B64_TOKEN=$(printf "%s" "$AZURE_DEVOPS_ARTIFACT_TOKEN" | base64 -w0)
+
+          # Strip trailing slash and protocol for the auth-key form npm expects.
+          FEED_PATH=$(echo "${AZURE_NPM_FEED_URL%/}" | sed 's|^https:||')
+
+          cat > .npmrc <<EOF
+          ${NPM_SCOPE}:registry=${AZURE_NPM_FEED_URL}
+          always-auth=true
+          ; auth for the registry endpoint
+          ${FEED_PATH}/:username=${AZURE_DEVOPS_ARTIFACT_USERNAME}
+          ${FEED_PATH}/:_password=${B64_TOKEN}
+          ${FEED_PATH}/:email=npm-requires-email-but-doesnt-use-it@example.com
+          ; auth for the feed root (used by npm publish)
+          ${FEED_PATH%/registry}/:username=${AZURE_DEVOPS_ARTIFACT_USERNAME}
+          ${FEED_PATH%/registry}/:_password=${B64_TOKEN}
+          ${FEED_PATH%/registry}/:email=npm-requires-email-but-doesnt-use-it@example.com
+          EOF
+
+      - name: Set version in package.json
+        env:
+          ARTEFACT_VERSION: ${{ needs.version.outputs.artefact_version }}
+        run: npm version "$ARTEFACT_VERSION" --no-git-tag-version --allow-same-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Publish to Azure Artifacts
+        env:
+          ARTEFACT_VERSION: ${{ needs.version.outputs.artefact_version }}
+        run: |
+          echo "Publishing ${NPM_SCOPE}/$(node -p "require('./package.json').name.split('/')[1]")@$ARTEFACT_VERSION"
+
+          set +e
+          output=$(npm publish --registry "$AZURE_NPM_FEED_URL" 2>&1)
+          exit_code=$?
+          echo "$output"
+          if [ $exit_code -ne 0 ] && echo "$output" | grep -qiE "EPUBLISHCONFLICT|409|already exists|cannot publish over"; then
+            echo "Artefact already exists in feed (409 Conflict) — treating as success"
+            exit 0
+          fi
+          exit $exit_code
