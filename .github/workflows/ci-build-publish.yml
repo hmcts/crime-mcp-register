@@ -8,10 +8,6 @@ on:
       AZURE_DEVOPS_ARTIFACT_TOKEN:
         required: true
     inputs:
-      environment:
-        required: true
-        type: string
-        default: dev
       is_release:
         required: false
         type: boolean
@@ -28,8 +24,6 @@ env:
 jobs:
   version:
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ inputs.environment }}
     outputs:
       artefact_version: ${{ inputs.is_release && steps.artefact.outputs.release_version || steps.artefact.outputs.draft_version }}
     steps:
@@ -49,8 +43,6 @@ jobs:
   build:
     needs: [version]
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ inputs.environment }}
     outputs:
       repo_name: ${{ steps.repo_vars.outputs.repo_name }}
       artefact_name: ${{ steps.repo_vars.outputs.artefact_name }}
@@ -96,8 +88,6 @@ jobs:
     needs: [version, build]
     if: ${{ inputs.is_publish }}
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ inputs.environment }}
     steps:
       - name: Checkout source code
         uses: actions/checkout@v6
