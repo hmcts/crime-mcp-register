@@ -210,6 +210,10 @@ the package has been used in at least one plugin outside the in-tree one.
 [`hmcts/crime-mcp-register`](https://github.com/hmcts/crime-mcp-register).
 Issues and contributions welcome.
 
-## Licence
+### Contribute to This Repository
 
-ISC. See `LICENSE` in the repository root.
+Contributions are welcome! Please see the [CONTRIBUTING.md](.github/CONTRIBUTING.md) file for guidelines.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
