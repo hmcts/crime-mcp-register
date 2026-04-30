@@ -4,7 +4,7 @@
 > proxy, cached GitHub client, server factory. Bring your tools and
 > your `instructions` field; this package handles everything else.
 
-[![npm version](https://img.shields.io/badge/npm-0.1.0--beta.0-blue.svg)](https://www.npmjs.com/package/@hmcts/crime-mcp-register)
+[![@hmcts/crime-mcp-register in hmcts-lib](https://img.shields.io/badge/npm-0.1.0-blue.svg)](https://dev.azure.com/hmcts/Artifacts/_artifacts/feed/hmcts-lib/Npm/@hmcts%2Fcrime-mcp-register)
 [![Status: beta](https://img.shields.io/badge/status-beta-yellow.svg)](#status)
 
 ## Install
@@ -215,6 +215,10 @@ the package has been used in at least one plugin outside the in-tree one.
 [`hmcts/crime-mcp-register`](https://github.com/hmcts/crime-mcp-register).
 Issues and contributions welcome.
 
-## Licence
+### Contribute to This Repository
 
-ISC. See `LICENSE` in the repository root.
+Contributions are welcome! Please see the [CONTRIBUTING.md](.github/CONTRIBUTING.md) file for guidelines.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
