@@ -110,6 +110,19 @@ The library provides everything else:
   byte-perfect installation via `tar -xf` on the developer's side, with
   zero file content travelling through Claude's response tokens. Same
   primitive available to any future plugin without changes.
+- **Elicitation primitives.** Tool handlers can pause and ask the user
+  for structured input -- boolean checkboxes, enum dropdowns,
+  multi-select arrays, plain text, integers with min/max -- via the
+  MCP elicitation protocol (Claude Code 2.1.76+). `elicitInput` sends
+  the request directly; `elicitOrFallback` adds a graceful fallback
+  for clients that don't render the form (the VS Code MCP extension,
+  at the time of writing, advertises elicitation support but
+  auto-declines requests without rendering the UI). A consumer plugin
+  using `elicitOrFallback` gets an interactive form on supported
+  clients and a typed defaults object on others -- the user
+  experience differs but the consumer's downstream logic is the same.
+  Used by `crime-frontend-developer-mcp`'s `gate_intake` tool to
+  capture Gate 1 specs without per-question conversational round-trips.
 
 ## What this deliberately does NOT do
 

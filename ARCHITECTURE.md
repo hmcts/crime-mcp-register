@@ -17,6 +17,7 @@ for a quick start, read [README.md](./README.md).
 7. [The GitHub client](#7-the-github-client)
 8. [Request context and per-developer auth](#8-request-context-and-per-developer-auth)
 8b. [Bundle delivery](#8b-bundle-delivery)
+8c. [Elicitation](#8c-elicitation)
 9. [Error model](#9-error-model)
 10. [Constraints and version locks](#10-constraints-and-version-locks)
 11. [Extension points](#11-extension-points)
@@ -28,6 +29,9 @@ for a quick start, read [README.md](./README.md).
 ```
 src/
 +-- index.ts                  Public re-exports -- the entire surface area
++-- elicitation.ts            elicitInput / clientSupportsElicitation /
+|                             elicitOrFallback -- structured user input via MCP
+|                             elicitation, with fallback for non-rendering clients
 +-- types/
 |   +-- tool.ts               CoreTool, ServerConfig, defineTool, JSON schema -> Zod
 |   +-- prompt.ts             McpPrompt, definePrompt
@@ -35,6 +39,9 @@ src/
 |   +-- create-server.ts      buildServer (factory), createServer (entry point)
 |   +-- transport.ts          Mode resolution: stdio | local-sse | remote-sse
 |   +-- sse-server.ts         HTTP server hosting MCP-over-SSE + auxiliary endpoints
+|   +-- server-context.ts     AsyncLocalStorage-backed Server reference -- lets tool
+|   |                         handlers reach the MCP Server for client-bound requests
+|   |                         like elicitation
 |   +-- payload-store.ts      Single-use, TTL-bounded bundle store for /payload/:id
 |   +-- tar-gz.ts             Minimal tar.gz writer (ustar + zlib, no new deps)
 +-- github/
@@ -50,16 +57,18 @@ src/
     +-- context.ts            AsyncLocalStorage-backed request context
 ```
 
-Total: 16 source files, ~2050 lines. Single-file modules where the unit is
+Total: 18 source files, ~2200 lines. Single-file modules where the unit is
 small enough; folder-as-module where the surface needs more than one file
 (server, github, auth).
 
 The dependency direction is one-way: `server` depends on `auth` and `github`;
 `auth` depends only on `auth/*`; `github` depends on `auth/context` for
 session lookup but not on the rest. There are no cyclic imports. The new
-`server/payload-store.ts` and `server/tar-gz.ts` modules are leaves --
-nothing in the codebase depends on them; they exist purely as primitives
-for consumer plugins to import.
+`server/payload-store.ts`, `server/tar-gz.ts`, `server/server-context.ts`,
+and `elicitation.ts` modules are leaves -- nothing in the codebase depends on
+them; they exist purely as primitives for consumer plugins to import. The
+elicitation module reads its current Server via `server/server-context`,
+which `create-server.ts` populates per tool-handler invocation.
 
 ## 2. Public API surface
 
@@ -100,6 +109,12 @@ export type { RequestContext };
 export { storePayload, payloadStoreSize };
 export { buildTarGz };
 export type { TarEntry };
+
+// Elicitation (structured user input via MCP elicitation; Claude Code 2.1.76+)
+export { elicitInput, clientSupportsElicitation, elicitOrFallback };
+export type { ElicitResult, ElicitSchema, ElicitProperty };
+export type { ElicitOrFallbackResult, ElicitOptions, ElicitOrFallbackOptions };
+export { runWithServer, getCurrentServer };
 ```
 
 ### What each does, in a sentence
@@ -144,6 +159,17 @@ export type { TarEntry };
 | `payloadStoreSize`        | fn    | Number of bundles currently held; used by `/health`-style diagnostics.           |
 | `buildTarGz`              | fn    | Pure tar.gz writer. `(entries: TarEntry[]) => Buffer`. UTF-8 no-BOM, ustar format. |
 | `TarEntry`                | type  | `{ path: string; content: string }` -- one file in the bundle.                   |
+| `elicitInput`             | fn    | Send an `elicitation/create` request to the client. Returns `{ action, content? }`. Throws on timeout, error, or unsupported client. |
+| `clientSupportsElicitation` | fn  | Whether the connected client advertised elicitation support during initialise.   |
+| `elicitOrFallback`        | fn    | Try `elicitInput`; on any non-accept outcome (decline, cancel, throw, no support), call the fallback supplier and return those values instead. Never throws. |
+| `ElicitResult`            | type  | Raw `elicitInput` return: `{ action: 'accept'\|'decline'\|'cancel', content? }`. |
+| `ElicitSchema`            | type  | Flat object schema accepted by elicitation. Properties are primitives + `array` of enum strings. |
+| `ElicitProperty`          | type  | A single field in an elicitation schema (string/number/integer/boolean/array of enum). |
+| `ElicitOrFallbackResult`  | type  | `{ source, action?, values, error?, rawResult? }` -- which path produced the values, plus diagnostics. |
+| `ElicitOptions`           | type  | Forwarded to the SDK's `RequestOptions`: `{ timeout?, signal? }`.                |
+| `ElicitOrFallbackOptions` | type  | Currently `{ timeout? }`; defaults to 300_000 ms (5 min).                        |
+| `runWithServer`           | fn    | Run a callback within an AsyncLocalStorage scope carrying the current MCP `Server`. Used by `create-server` per tool-handler invocation. |
+| `getCurrentServer`        | fn    | Read the current MCP `Server` if set via `runWithServer`, else `undefined`.      |
 
 The complete behaviour of each is described later in this document.
 
@@ -716,6 +742,117 @@ export const setupTool = defineTool({
 
 The `/payload/:id` route is part of the SSE server, so any plugin that
 runs on `crime-mcp-register`'s `createServer` gets it for free.
+
+## 8c. Elicitation
+
+A primitive consumer plugins use to ask the user for structured input
+mid-tool-call -- a form rendered by the client (Claude Code 2.1.76+),
+with answers returned to the handler as a typed object.
+
+### The protocol shape
+
+The MCP elicitation protocol (added 2025-06-18) defines a single client-bound
+request: `elicitation/create`. The server sends a `message` and a
+`requestedSchema` describing the form's fields; the client renders a UI;
+the user submits, declines, or cancels; the response carries one of
+`{ action: 'accept', content }`, `{ action: 'decline' }`, or
+`{ action: 'cancel' }`.
+
+The schema is restricted by spec to a **flat object with primitive
+properties**: strings (with optional `enum` for dropdowns/radio), numbers
+and integers (with `minimum`/`maximum`), booleans (rendered as checkboxes),
+and arrays of enum strings (rendered as multi-select). No nested objects,
+no `oneOf`, no recursion. Each property may declare a `default` (pre-fills
+the field) and a `description` (rendered as the field's label or help text).
+
+### `elicitInput`
+
+Direct wrapper around the SDK's `Server.elicitInput`. Reads the current
+MCP `Server` via `getCurrentServer()` (which `create-server` populates
+per tool-handler invocation), forwards `{ message, requestedSchema }` plus
+any `ElicitOptions` (notably `timeout`), and returns the raw `ElicitResult`.
+
+```ts
+const result = await elicitInput<{ format: string; pageSize: number }>(
+  'Configure output',
+  schema,
+  { timeout: 300_000 },
+);
+if (result.action === 'accept' && result.content) {
+  // result.content is the validated user input
+}
+```
+
+The wrapper throws if it's called outside a tool-handler scope (no Server
+in async context) or if the SDK rejects (timeout, capability mismatch,
+schema validation failure). Tool handlers wanting graceful degradation
+should use `elicitOrFallback` instead.
+
+### `elicitOrFallback`
+
+The pattern most consumer tools want. Tries elicitation; on **any**
+non-accept outcome, calls the supplied fallback to produce values:
+
+```ts
+const result = await elicitOrFallback(
+  'Configure output',
+  schema,
+  () => ({ format: 'json', pageSize: 10 }),  // sensible defaults
+);
+// result.source === 'elicitation' | 'fallback'
+// result.values is always populated
+```
+
+The result includes `source` ('elicitation' or 'fallback'), the original
+`action` (accept / decline / cancel) when one came back, an `error` field
+when the SDK threw, and a `rawResult` field carrying the underlying
+elicitInput response when one exists. Production callers can use just
+`source` and `values`; diagnostics callers can inspect the rest.
+
+The default timeout is **300_000 ms (5 minutes)** -- long enough for
+thoughtful form-filling, short enough that an abandoned session frees
+the server's pending request. Consumer tools with shorter or longer
+forms can override via `ElicitOrFallbackOptions.timeout`.
+
+### Why fall back unconditionally on non-accept
+
+The protocol distinguishes user-initiated `decline` from
+client-initiated auto-decline only by convention -- both come back as
+`action: 'decline'` with no payload. At time of writing, the VS Code
+MCP extension advertises elicitation support during the initialise
+handshake but auto-declines actual requests without rendering the form;
+CLI Claude Code renders correctly. Rather than maintain a list of
+"broken" clients (which would go stale when VS Code fixes the bug, or
+miss new clients), `elicitOrFallback` treats any non-accept outcome
+identically. The user gets the fallback values; if the consumer tool
+wants to surface a Markdown intake to the user (as `gate_intake` does),
+it can do so based on `source === 'fallback'` without caring whether
+the user declined intentionally or the surface didn't render.
+
+### Server context plumbing
+
+`server-context.ts` provides an `AsyncLocalStorage<{ server: Server }>`
+backing the elicitation lookup. `create-server.ts` wraps every tool
+handler invocation in `runWithServer(server, () => handler(args))`,
+so the handler (and anything it awaits) can call `getCurrentServer()`
+to reach the Server for client-bound requests.
+
+This pattern mirrors `runWithSession` / `getCurrentSession` (used for
+per-developer GitHub identity). The AsyncLocalStorage approach was
+chosen over threading a `Server` argument through `defineTool`'s handler
+signature because the latter would be a breaking change for every
+existing consumer.
+
+### Reusability
+
+The elicitation primitives are consumer-agnostic. Any future MCP plugin
+that needs structured user input mid-tool-call can import and use them
+without modification. The current consumer is
+`crime-frontend-developer-mcp`'s `gate_intake` tool, which uses
+`elicitOrFallback` to capture Gate 1 specs from the developer in a
+single round-trip on supported clients (rendered form) and via Markdown
+intake on non-rendering clients (Claude shows the markdown, user replies
+in chat, the tool re-validates on the second call).
 
 ## 9. Error model
 

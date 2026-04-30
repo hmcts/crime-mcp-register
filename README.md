@@ -8,7 +8,7 @@
 [![Status: beta](https://img.shields.io/badge/status-beta-yellow.svg)](#status)
 
 ## Install
-### NOT ACTIVE YET. FRONTEND PLUGIN USES TAR FILE.
+
 ```bash
 npm install @hmcts/crime-mcp-register
 ```
@@ -31,6 +31,11 @@ model, and gets:
 - Bundle delivery primitives: `buildTarGz` + `storePayload` + a
   single-use `GET /payload/:id` download route, for shipping files to a
   developer's machine without inflating MCP tool results
+- Elicitation primitives: `elicitInput`, `clientSupportsElicitation`,
+  `elicitOrFallback` -- structured form input from the user (Claude
+  Code 2.1.76+) with graceful fallback to non-interactive defaults
+  when the client doesn't render the form (e.g. VS Code extension at
+  the time of writing)
 
 All transport modes (`local-stdio`, `local-sse`, `remote-sse`) share the
 same factory and tool registration code. A plugin author writes one set
