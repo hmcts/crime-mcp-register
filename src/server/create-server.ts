@@ -22,6 +22,7 @@
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { runWithServer } from './server-context.js';
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
@@ -64,7 +65,10 @@ function registerTools(server: Server, config: CreateServerConfig): void {
     if (!tool) return toMcpError(`Unknown tool: ${name}`);
     try {
       const parsed = tool.zodSchema.parse(args ?? {});
-      const result = await tool.handler(parsed);
+      // Wrap in runWithServer so the handler (and anything it awaits) can
+      // reach this Server instance via getCurrentServer() -- needed for
+      // elicitation and any other client-bound request types.
+      const result = await runWithServer(server, () => tool.handler(parsed));
       return toMcpResponse(result);
     } catch (err: any) {
       return toMcpError(`Error in tool "${name}": ${err.message}`);

@@ -38,3 +38,18 @@ export type { RequestContext } from './auth/context.js';
 export { storePayload, payloadStoreSize } from './server/payload-store.js';
 export { buildTarGz } from './server/tar-gz.js';
 export type { TarEntry } from './server/tar-gz.js';
+
+// Elicitation: structured form input from the user (Claude Code 2.1.76+).
+// Tool handlers can pause and ask the user for boolean / enum / multi-select /
+// numeric / string input, rendered as a form by the client. Falls back gracefully
+// when the client doesn't support it via clientSupportsElicitation().
+export { elicitInput, clientSupportsElicitation, elicitOrFallback } from './elicitation.js';
+export type {
+  ElicitResult,
+  ElicitSchema,
+  ElicitProperty,
+  ElicitOrFallbackResult,
+  ElicitOptions,
+  ElicitOrFallbackOptions,
+} from './elicitation.js';
+export { runWithServer, getCurrentServer } from './server/server-context.js';

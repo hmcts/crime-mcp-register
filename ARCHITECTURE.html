@@ -255,7 +255,7 @@ detail</a></li>
 <li><a href="#7-the-github-client">The GitHub client</a></li>
 <li><a href="#8-request-context-and-per-developer-auth">Request context
 and per-developer auth</a> 8b. <a href="#8b-bundle-delivery">Bundle
-delivery</a></li>
+delivery</a> 8c. <a href="#8c-elicitation">Elicitation</a></li>
 <li><a href="#9-error-model">Error model</a></li>
 <li><a href="#10-constraints-and-version-locks">Constraints and version
 locks</a></li>
@@ -265,6 +265,9 @@ locks</a></li>
 <h2 id="module-layout">1. Module layout</h2>
 <pre><code>src/
 +-- index.ts                  Public re-exports -- the entire surface area
++-- elicitation.ts            elicitInput / clientSupportsElicitation /
+|                             elicitOrFallback -- structured user input via MCP
+|                             elicitation, with fallback for non-rendering clients
 +-- types/
 |   +-- tool.ts               CoreTool, ServerConfig, defineTool, JSON schema -&gt; Zod
 |   +-- prompt.ts             McpPrompt, definePrompt
@@ -272,6 +275,9 @@ locks</a></li>
 |   +-- create-server.ts      buildServer (factory), createServer (entry point)
 |   +-- transport.ts          Mode resolution: stdio | local-sse | remote-sse
 |   +-- sse-server.ts         HTTP server hosting MCP-over-SSE + auxiliary endpoints
+|   +-- server-context.ts     AsyncLocalStorage-backed Server reference -- lets tool
+|   |                         handlers reach the MCP Server for client-bound requests
+|   |                         like elicitation
 |   +-- payload-store.ts      Single-use, TTL-bounded bundle store for /payload/:id
 |   +-- tar-gz.ts             Minimal tar.gz writer (ustar + zlib, no new deps)
 +-- github/
@@ -285,17 +291,20 @@ locks</a></li>
     +-- github.ts              OAuth client for github.com (code exchange, refresh, /user)
     +-- endpoints.ts          Six HTTP handlers for the OAuth flow + Bearer middleware
     +-- context.ts            AsyncLocalStorage-backed request context</code></pre>
-<p>Total: 16 source files, ~2050 lines. Single-file modules where the
+<p>Total: 18 source files, ~2200 lines. Single-file modules where the
 unit is small enough; folder-as-module where the surface needs more than
 one file (server, github, auth).</p>
 <p>The dependency direction is one-way: <code>server</code> depends on
 <code>auth</code> and <code>github</code>; <code>auth</code> depends
 only on <code>auth/*</code>; <code>github</code> depends on
 <code>auth/context</code> for session lookup but not on the rest. There
-are no cyclic imports. The new <code>server/payload-store.ts</code> and
-<code>server/tar-gz.ts</code> modules are leaves – nothing in the
+are no cyclic imports. The new <code>server/payload-store.ts</code>,
+<code>server/tar-gz.ts</code>, <code>server/server-context.ts</code>,
+and <code>elicitation.ts</code> modules are leaves – nothing in the
 codebase depends on them; they exist purely as primitives for consumer
-plugins to import.</p>
+plugins to import. The elicitation module reads its current Server via
+<code>server/server-context</code>, which <code>create-server.ts</code>
+populates per tool-handler invocation.</p>
 <h2 id="public-api-surface">2. Public API surface</h2>
 <p>Every export is re-exported from <code>src/index.ts</code>. Nothing
 else is part of the public contract; consumer code must not reach into
@@ -330,7 +339,13 @@ else is part of the public contract; consumer code must not reach into
 <span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="co">// Bundle delivery (one-time download URLs for seeding developer machines)</span></span>
 <span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> { storePayload<span class="op">,</span> payloadStoreSize }<span class="op">;</span></span>
 <span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> { buildTarGz }<span class="op">;</span></span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> { TarEntry }<span class="op">;</span></span></code></pre></div>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> { TarEntry }<span class="op">;</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="co">// Elicitation (structured user input via MCP elicitation; Claude Code 2.1.76+)</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> { elicitInput<span class="op">,</span> clientSupportsElicitation<span class="op">,</span> elicitOrFallback }<span class="op">;</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> { ElicitResult<span class="op">,</span> ElicitSchema<span class="op">,</span> ElicitProperty }<span class="op">;</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="im">export type</span> { ElicitOrFallbackResult<span class="op">,</span> ElicitOptions<span class="op">,</span> ElicitOrFallbackOptions }<span class="op">;</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="im">export</span> { runWithServer<span class="op">,</span> getCurrentServer }<span class="op">;</span></span></code></pre></div>
 <h3 id="what-each-does-in-a-sentence">What each does, in a sentence</h3>
 <table>
 <colgroup>
@@ -566,6 +581,75 @@ UTF-8 no-BOM, ustar format.</td>
 <td>type</td>
 <td><code>{ path: string; content: string }</code> – one file in the
 bundle.</td>
+</tr>
+<tr class="odd">
+<td><code>elicitInput</code></td>
+<td>fn</td>
+<td>Send an <code>elicitation/create</code> request to the client.
+Returns <code>{ action, content? }</code>. Throws on timeout, error, or
+unsupported client.</td>
+</tr>
+<tr class="even">
+<td><code>clientSupportsElicitation</code></td>
+<td>fn</td>
+<td>Whether the connected client advertised elicitation support during
+initialise.</td>
+</tr>
+<tr class="odd">
+<td><code>elicitOrFallback</code></td>
+<td>fn</td>
+<td>Try <code>elicitInput</code>; on any non-accept outcome (decline,
+cancel, throw, no support), call the fallback supplier and return those
+values instead. Never throws.</td>
+</tr>
+<tr class="even">
+<td><code>ElicitResult</code></td>
+<td>type</td>
+<td>Raw <code>elicitInput</code> return:
+<code>{ action: 'accept'\|'decline'\|'cancel', content? }</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>ElicitSchema</code></td>
+<td>type</td>
+<td>Flat object schema accepted by elicitation. Properties are
+primitives + <code>array</code> of enum strings.</td>
+</tr>
+<tr class="even">
+<td><code>ElicitProperty</code></td>
+<td>type</td>
+<td>A single field in an elicitation schema
+(string/number/integer/boolean/array of enum).</td>
+</tr>
+<tr class="odd">
+<td><code>ElicitOrFallbackResult</code></td>
+<td>type</td>
+<td><code>{ source, action?, values, error?, rawResult? }</code> – which
+path produced the values, plus diagnostics.</td>
+</tr>
+<tr class="even">
+<td><code>ElicitOptions</code></td>
+<td>type</td>
+<td>Forwarded to the SDK’s <code>RequestOptions</code>:
+<code>{ timeout?, signal? }</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>ElicitOrFallbackOptions</code></td>
+<td>type</td>
+<td>Currently <code>{ timeout? }</code>; defaults to 300_000 ms (5
+min).</td>
+</tr>
+<tr class="even">
+<td><code>runWithServer</code></td>
+<td>fn</td>
+<td>Run a callback within an AsyncLocalStorage scope carrying the
+current MCP <code>Server</code>. Used by <code>create-server</code> per
+tool-handler invocation.</td>
+</tr>
+<tr class="odd">
+<td><code>getCurrentServer</code></td>
+<td>fn</td>
+<td>Read the current MCP <code>Server</code> if set via
+<code>runWithServer</code>, else <code>undefined</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -1197,6 +1281,113 @@ class="sourceCode ts"><code class="sourceCode typescript"><span id="cb15-1"><a h
 <p>The <code>/payload/:id</code> route is part of the SSE server, so any
 plugin that runs on <code>crime-mcp-register</code>’s
 <code>createServer</code> gets it for free.</p>
+<h2 id="c.-elicitation">8c. Elicitation</h2>
+<p>A primitive consumer plugins use to ask the user for structured input
+mid-tool-call – a form rendered by the client (Claude Code 2.1.76+),
+with answers returned to the handler as a typed object.</p>
+<h3 id="the-protocol-shape">The protocol shape</h3>
+<p>The MCP elicitation protocol (added 2025-06-18) defines a single
+client-bound request: <code>elicitation/create</code>. The server sends
+a <code>message</code> and a <code>requestedSchema</code> describing the
+form’s fields; the client renders a UI; the user submits, declines, or
+cancels; the response carries one of
+<code>{ action: 'accept', content }</code>,
+<code>{ action: 'decline' }</code>, or
+<code>{ action: 'cancel' }</code>.</p>
+<p>The schema is restricted by spec to a <strong>flat object with
+primitive properties</strong>: strings (with optional <code>enum</code>
+for dropdowns/radio), numbers and integers (with
+<code>minimum</code>/<code>maximum</code>), booleans (rendered as
+checkboxes), and arrays of enum strings (rendered as multi-select). No
+nested objects, no <code>oneOf</code>, no recursion. Each property may
+declare a <code>default</code> (pre-fills the field) and a
+<code>description</code> (rendered as the field’s label or help
+text).</p>
+<h3 id="elicitinput"><code>elicitInput</code></h3>
+<p>Direct wrapper around the SDK’s <code>Server.elicitInput</code>.
+Reads the current MCP <code>Server</code> via
+<code>getCurrentServer()</code> (which <code>create-server</code>
+populates per tool-handler invocation), forwards
+<code>{ message, requestedSchema }</code> plus any
+<code>ElicitOptions</code> (notably <code>timeout</code>), and returns
+the raw <code>ElicitResult</code>.</p>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode ts"><code class="sourceCode typescript"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> result <span class="op">=</span> <span class="cf">await</span> <span class="fu">elicitInput</span><span class="op">&lt;</span>{ format<span class="op">:</span> <span class="dt">string</span><span class="op">;</span> pageSize<span class="op">:</span> <span class="dt">number</span> }<span class="op">&gt;</span>(</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&#39;Configure output&#39;</span><span class="op">,</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  schema<span class="op">,</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  { timeout<span class="op">:</span> <span class="dv">300_000</span> }<span class="op">,</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>)<span class="op">;</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (result<span class="op">.</span><span class="at">action</span> <span class="op">===</span> <span class="st">&#39;accept&#39;</span> <span class="op">&amp;&amp;</span> result<span class="op">.</span><span class="at">content</span>) {</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="co">// result.content is the validated user input</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>The wrapper throws if it’s called outside a tool-handler scope (no
+Server in async context) or if the SDK rejects (timeout, capability
+mismatch, schema validation failure). Tool handlers wanting graceful
+degradation should use <code>elicitOrFallback</code> instead.</p>
+<h3 id="elicitorfallback"><code>elicitOrFallback</code></h3>
+<p>The pattern most consumer tools want. Tries elicitation; on
+<strong>any</strong> non-accept outcome, calls the supplied fallback to
+produce values:</p>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode ts"><code class="sourceCode typescript"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> result <span class="op">=</span> <span class="cf">await</span> <span class="fu">elicitOrFallback</span>(</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&#39;Configure output&#39;</span><span class="op">,</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  schema<span class="op">,</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  () <span class="kw">=&gt;</span> ({ format<span class="op">:</span> <span class="st">&#39;json&#39;</span><span class="op">,</span> pageSize<span class="op">:</span> <span class="dv">10</span> })<span class="op">,</span>  <span class="co">// sensible defaults</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>)<span class="op">;</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="co">// result.source === &#39;elicitation&#39; | &#39;fallback&#39;</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="co">// result.values is always populated</span></span></code></pre></div>
+<p>The result includes <code>source</code> (‘elicitation’ or
+‘fallback’), the original <code>action</code> (accept / decline /
+cancel) when one came back, an <code>error</code> field when the SDK
+threw, and a <code>rawResult</code> field carrying the underlying
+elicitInput response when one exists. Production callers can use just
+<code>source</code> and <code>values</code>; diagnostics callers can
+inspect the rest.</p>
+<p>The default timeout is <strong>300_000 ms (5 minutes)</strong> – long
+enough for thoughtful form-filling, short enough that an abandoned
+session frees the server’s pending request. Consumer tools with shorter
+or longer forms can override via
+<code>ElicitOrFallbackOptions.timeout</code>.</p>
+<h3 id="why-fall-back-unconditionally-on-non-accept">Why fall back
+unconditionally on non-accept</h3>
+<p>The protocol distinguishes user-initiated <code>decline</code> from
+client-initiated auto-decline only by convention – both come back as
+<code>action: 'decline'</code> with no payload. At time of writing, the
+VS Code MCP extension advertises elicitation support during the
+initialise handshake but auto-declines actual requests without rendering
+the form; CLI Claude Code renders correctly. Rather than maintain a list
+of “broken” clients (which would go stale when VS Code fixes the bug, or
+miss new clients), <code>elicitOrFallback</code> treats any non-accept
+outcome identically. The user gets the fallback values; if the consumer
+tool wants to surface a Markdown intake to the user (as
+<code>gate_intake</code> does), it can do so based on
+<code>source === 'fallback'</code> without caring whether the user
+declined intentionally or the surface didn’t render.</p>
+<h3 id="server-context-plumbing">Server context plumbing</h3>
+<p><code>server-context.ts</code> provides an
+<code>AsyncLocalStorage&lt;{ server: Server }&gt;</code> backing the
+elicitation lookup. <code>create-server.ts</code> wraps every tool
+handler invocation in
+<code>runWithServer(server, () =&gt; handler(args))</code>, so the
+handler (and anything it awaits) can call
+<code>getCurrentServer()</code> to reach the Server for client-bound
+requests.</p>
+<p>This pattern mirrors <code>runWithSession</code> /
+<code>getCurrentSession</code> (used for per-developer GitHub identity).
+The AsyncLocalStorage approach was chosen over threading a
+<code>Server</code> argument through <code>defineTool</code>’s handler
+signature because the latter would be a breaking change for every
+existing consumer.</p>
+<h3 id="reusability-1">Reusability</h3>
+<p>The elicitation primitives are consumer-agnostic. Any future MCP
+plugin that needs structured user input mid-tool-call can import and use
+them without modification. The current consumer is
+<code>crime-frontend-developer-mcp</code>’s <code>gate_intake</code>
+tool, which uses <code>elicitOrFallback</code> to capture Gate 1 specs
+from the developer in a single round-trip on supported clients (rendered
+form) and via Markdown intake on non-rendering clients (Claude shows the
+markdown, user replies in chat, the tool re-validates on the second
+call).</p>
 <h2 id="error-model">9. Error model</h2>
 <p>Three layers of error handling:</p>
 <ol type="1">
@@ -1250,88 +1441,88 @@ the build.</p>
 <h2 id="extension-points">11. Extension points</h2>
 <h3 id="adding-a-tool-to-a-consumer-plugin">Adding a tool to a consumer
 plugin</h3>
-<div class="sourceCode" id="cb16"><pre
-class="sourceCode ts"><code class="sourceCode typescript"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { defineTool<span class="op">,</span> <span class="kw">type</span> CoreTool } <span class="im">from</span> <span class="st">&#39;@hmcts/crime-mcp-register&#39;</span><span class="op">;</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> myTool<span class="op">:</span> CoreTool <span class="op">=</span> <span class="fu">defineTool</span>({</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  name<span class="op">:</span> <span class="st">&#39;my_tool&#39;</span><span class="op">,</span></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  description<span class="op">:</span> <span class="st">&#39;What it does, in detail. Used by the model verbatim.&#39;</span><span class="op">,</span></span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  inputSchema<span class="op">:</span> {</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    type<span class="op">:</span> <span class="st">&#39;object&#39;</span><span class="op">,</span></span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>    properties<span class="op">:</span> {</span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>      query<span class="op">:</span> { type<span class="op">:</span> <span class="st">&#39;string&#39;</span><span class="op">,</span> description<span class="op">:</span> <span class="st">&#39;The query to run.&#39;</span> }<span class="op">,</span></span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>      limit<span class="op">:</span> { type<span class="op">:</span> <span class="st">&#39;number&#39;</span><span class="op">,</span> description<span class="op">:</span> <span class="st">&#39;Max results.&#39;</span><span class="op">,</span> <span class="cf">default</span><span class="op">:</span> <span class="dv">10</span> }<span class="op">,</span></span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    }<span class="op">,</span></span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>    required<span class="op">:</span> [<span class="st">&#39;query&#39;</span>]<span class="op">,</span></span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>  handler<span class="op">:</span> <span class="kw">async</span> ({ query<span class="op">,</span> limit }) <span class="kw">=&gt;</span> {</span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ... do work ...</span></span>
-<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> { results<span class="op">:</span> [<span class="op">...</span>] }<span class="op">;</span></span>
-<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
-<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre
+class="sourceCode ts"><code class="sourceCode typescript"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { defineTool<span class="op">,</span> <span class="kw">type</span> CoreTool } <span class="im">from</span> <span class="st">&#39;@hmcts/crime-mcp-register&#39;</span><span class="op">;</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> myTool<span class="op">:</span> CoreTool <span class="op">=</span> <span class="fu">defineTool</span>({</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  name<span class="op">:</span> <span class="st">&#39;my_tool&#39;</span><span class="op">,</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  description<span class="op">:</span> <span class="st">&#39;What it does, in detail. Used by the model verbatim.&#39;</span><span class="op">,</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  inputSchema<span class="op">:</span> {</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>    type<span class="op">:</span> <span class="st">&#39;object&#39;</span><span class="op">,</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    properties<span class="op">:</span> {</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>      query<span class="op">:</span> { type<span class="op">:</span> <span class="st">&#39;string&#39;</span><span class="op">,</span> description<span class="op">:</span> <span class="st">&#39;The query to run.&#39;</span> }<span class="op">,</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>      limit<span class="op">:</span> { type<span class="op">:</span> <span class="st">&#39;number&#39;</span><span class="op">,</span> description<span class="op">:</span> <span class="st">&#39;Max results.&#39;</span><span class="op">,</span> <span class="cf">default</span><span class="op">:</span> <span class="dv">10</span> }<span class="op">,</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    }<span class="op">,</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>    required<span class="op">:</span> [<span class="st">&#39;query&#39;</span>]<span class="op">,</span></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>  handler<span class="op">:</span> <span class="kw">async</span> ({ query<span class="op">,</span> limit }) <span class="kw">=&gt;</span> {</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ... do work ...</span></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> { results<span class="op">:</span> [<span class="op">...</span>] }<span class="op">;</span></span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
 <p><code>defineTool</code> runs the JSON schema through
 <code>jsonSchemaToZod</code> and stores the resulting Zod schema on the
 returned <code>CoreTool</code>. At dispatch time the incoming arguments
 are parsed by Zod; failures become tool errors with the Zod message in
 the body.</p>
 <h3 id="adding-a-prompt">Adding a prompt</h3>
-<div class="sourceCode" id="cb17"><pre
-class="sourceCode ts"><code class="sourceCode typescript"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { definePrompt } <span class="im">from</span> <span class="st">&#39;@hmcts/crime-mcp-register&#39;</span><span class="op">;</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> myPrompt <span class="op">=</span> <span class="fu">definePrompt</span>({</span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  name<span class="op">:</span> <span class="st">&#39;review_pull_request&#39;</span><span class="op">,</span></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  description<span class="op">:</span> <span class="st">&#39;Generate a PR review draft.&#39;</span><span class="op">,</span></span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  arguments<span class="op">:</span> [</span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    { name<span class="op">:</span> <span class="st">&#39;pr_url&#39;</span><span class="op">,</span> description<span class="op">:</span> <span class="st">&#39;GitHub PR URL&#39;</span><span class="op">,</span> required<span class="op">:</span> <span class="kw">true</span> }<span class="op">,</span></span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  ]<span class="op">,</span></span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  handler<span class="op">:</span> <span class="kw">async</span> ({ pr_url }) <span class="kw">=&gt;</span> ({</span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>    description<span class="op">:</span> <span class="st">&#39;Generated PR review&#39;</span><span class="op">,</span></span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    messages<span class="op">:</span> [{ role<span class="op">:</span> <span class="st">&#39;user&#39;</span><span class="op">,</span> content<span class="op">:</span> { type<span class="op">:</span> <span class="st">&#39;text&#39;</span><span class="op">,</span> text<span class="op">:</span> <span class="vs">`Review </span><span class="sc">${</span>pr_url<span class="sc">}</span><span class="vs">...`</span> } }]<span class="op">,</span></span>
-<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>  })<span class="op">,</span></span>
-<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre
+class="sourceCode ts"><code class="sourceCode typescript"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> { definePrompt } <span class="im">from</span> <span class="st">&#39;@hmcts/crime-mcp-register&#39;</span><span class="op">;</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> myPrompt <span class="op">=</span> <span class="fu">definePrompt</span>({</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  name<span class="op">:</span> <span class="st">&#39;review_pull_request&#39;</span><span class="op">,</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  description<span class="op">:</span> <span class="st">&#39;Generate a PR review draft.&#39;</span><span class="op">,</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  arguments<span class="op">:</span> [</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>    { name<span class="op">:</span> <span class="st">&#39;pr_url&#39;</span><span class="op">,</span> description<span class="op">:</span> <span class="st">&#39;GitHub PR URL&#39;</span><span class="op">,</span> required<span class="op">:</span> <span class="kw">true</span> }<span class="op">,</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  ]<span class="op">,</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  handler<span class="op">:</span> <span class="kw">async</span> ({ pr_url }) <span class="kw">=&gt;</span> ({</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>    description<span class="op">:</span> <span class="st">&#39;Generated PR review&#39;</span><span class="op">,</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>    messages<span class="op">:</span> [{ role<span class="op">:</span> <span class="st">&#39;user&#39;</span><span class="op">,</span> content<span class="op">:</span> { type<span class="op">:</span> <span class="st">&#39;text&#39;</span><span class="op">,</span> text<span class="op">:</span> <span class="vs">`Review </span><span class="sc">${</span>pr_url<span class="sc">}</span><span class="vs">...`</span> } }]<span class="op">,</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>  })<span class="op">,</span></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
 <p>In Claude Code the prompt becomes available as
 <code>/mcp__&lt;server-name&gt;__review_pull_request</code>.</p>
 <h3 id="enabling-oauth">Enabling OAuth</h3>
-<div class="sourceCode" id="cb18"><pre
-class="sourceCode ts"><code class="sourceCode typescript"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> {</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  createServer<span class="op">,</span></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  loadOAuthConfigFromEnv<span class="op">,</span></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  AuthStore<span class="op">,</span></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>} <span class="im">from</span> <span class="st">&#39;@hmcts/crime-mcp-register&#39;</span><span class="op">;</span></span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> config <span class="op">=</span> <span class="fu">loadOAuthConfigFromEnv</span>()<span class="op">;</span></span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="op">!</span>config) <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">Error</span>(<span class="st">&#39;OAuth env vars not set&#39;</span>)<span class="op">;</span></span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> store <span class="op">=</span> <span class="kw">new</span> <span class="fu">AuthStore</span>()<span class="op">;</span></span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>store<span class="op">.</span><span class="fu">start</span>()<span class="op">;</span></span>
-<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> <span class="fu">createServer</span>({</span>
-<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>  name<span class="op">:</span> <span class="st">&#39;my-mcp&#39;</span><span class="op">,</span></span>
-<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>  version<span class="op">:</span> <span class="st">&#39;1.0.0&#39;</span><span class="op">,</span></span>
-<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>  tools<span class="op">:</span> [<span class="op">...</span>]<span class="op">,</span></span>
-<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>  transport<span class="op">:</span> {</span>
-<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>    mode<span class="op">:</span> <span class="st">&#39;remote-sse&#39;</span><span class="op">,</span></span>
-<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>    auth<span class="op">:</span> { store<span class="op">,</span> config }<span class="op">,</span></span>
-<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>    enforceAuth<span class="op">:</span> <span class="kw">true</span><span class="op">,</span></span>
-<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
-<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre
+class="sourceCode ts"><code class="sourceCode typescript"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> {</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  createServer<span class="op">,</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  loadOAuthConfigFromEnv<span class="op">,</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  AuthStore<span class="op">,</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>} <span class="im">from</span> <span class="st">&#39;@hmcts/crime-mcp-register&#39;</span><span class="op">;</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> config <span class="op">=</span> <span class="fu">loadOAuthConfigFromEnv</span>()<span class="op">;</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="op">!</span>config) <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">Error</span>(<span class="st">&#39;OAuth env vars not set&#39;</span>)<span class="op">;</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> store <span class="op">=</span> <span class="kw">new</span> <span class="fu">AuthStore</span>()<span class="op">;</span></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>store<span class="op">.</span><span class="fu">start</span>()<span class="op">;</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> <span class="fu">createServer</span>({</span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>  name<span class="op">:</span> <span class="st">&#39;my-mcp&#39;</span><span class="op">,</span></span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>  version<span class="op">:</span> <span class="st">&#39;1.0.0&#39;</span><span class="op">,</span></span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>  tools<span class="op">:</span> [<span class="op">...</span>]<span class="op">,</span></span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>  transport<span class="op">:</span> {</span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>    mode<span class="op">:</span> <span class="st">&#39;remote-sse&#39;</span><span class="op">,</span></span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>    auth<span class="op">:</span> { store<span class="op">,</span> config }<span class="op">,</span></span>
+<span id="cb20-20"><a href="#cb20-20" aria-hidden="true" tabindex="-1"></a>    enforceAuth<span class="op">:</span> <span class="kw">true</span><span class="op">,</span></span>
+<span id="cb20-21"><a href="#cb20-21" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
+<span id="cb20-22"><a href="#cb20-22" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
 <p>Required environment variables: - <code>GITHUB_OAUTH_CLIENT_ID</code>
 - <code>GITHUB_OAUTH_CLIENT_SECRET</code> - <code>OAUTH_BASE_URL</code>
 (full URL, no trailing slash; must match the GitHub OAuth App’s callback
 URL)</p>
 <h3 id="adding-a-version-endpoint">Adding a <code>/version</code>
 endpoint</h3>
-<div class="sourceCode" id="cb19"><pre
-class="sourceCode ts"><code class="sourceCode typescript"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> <span class="fu">createServer</span>({</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  transport<span class="op">:</span> {</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    mode<span class="op">:</span> <span class="st">&#39;remote-sse&#39;</span><span class="op">,</span></span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    versionLoader<span class="op">:</span> <span class="kw">async</span> () <span class="kw">=&gt;</span> <span class="bu">JSON</span><span class="op">.</span><span class="fu">stringify</span>({</span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>      hash<span class="op">:</span> <span class="st">&#39;abc123...&#39;</span><span class="op">,</span></span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>      generated<span class="op">:</span> <span class="kw">new</span> <span class="bu">Date</span>()<span class="op">.</span><span class="fu">toISOString</span>()<span class="op">,</span></span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>    })<span class="op">,</span></span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
-<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre
+class="sourceCode ts"><code class="sourceCode typescript"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="cf">await</span> <span class="fu">createServer</span>({</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">// ...</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  transport<span class="op">:</span> {</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>    mode<span class="op">:</span> <span class="st">&#39;remote-sse&#39;</span><span class="op">,</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>    versionLoader<span class="op">:</span> <span class="kw">async</span> () <span class="kw">=&gt;</span> <span class="bu">JSON</span><span class="op">.</span><span class="fu">stringify</span>({</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>      hash<span class="op">:</span> <span class="st">&#39;abc123...&#39;</span><span class="op">,</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>      generated<span class="op">:</span> <span class="kw">new</span> <span class="bu">Date</span>()<span class="op">.</span><span class="fu">toISOString</span>()<span class="op">,</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>    })<span class="op">,</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>  }<span class="op">,</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>})<span class="op">;</span></span></code></pre></div>
 <p>The loader runs on every <code>GET /version</code> (no caching
 layered between it and the response). If the loader throws, a 500
 response is written.</p>
